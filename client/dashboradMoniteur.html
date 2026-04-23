@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CityDrive - Planning Moniteur</title>
+  <link href="./shared.css" rel="stylesheet" />
+  <link href="./dashboardClient.css" rel="stylesheet" />
+  <link href="./dashboradMoniteur.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="client-shell monitor-shell">
+    <aside class="client-sidebar">
+      <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+      <div class="client-profile card">
+        <div class="card-body">
+          
+          <span class="badge badge-accent" id="monitor-formation-badge">Permis B</span>
+        </div>
+      </div>
+
+      <nav class="client-nav">
+        <a class="client-nav-link active" href="./dashboradMoniteur.html">Planning</a>
+        <a class="client-nav-link" href="./eleves.html">Elèves</a>
+      </nav>
+
+      <div class="client-sidebar-footer">
+        <a class="client-sidebar-footer-link" href="./profil_Moniteur.html">Profil</a>
+        <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="monitor-logout-link">Deconnexion</a>
+      </div>
+    </aside>
+
+    <main class="client-main monitor-main">
+      <header class="client-topbar monitor-topbar">
+        <div>
+          <p class="client-kicker">Planning Moniteur</p>
+          <h1 class="h2">Calendrier des seances</h1>
+          <p class="text-muted">Retrouvez les lieux saisis par les clients, leurs coordonnees et la possibilite d'annuler une seance.</p>
+        </div>
+        <a class="btn btn-outline" href="./eleves.html">Voir les eleves</a>
+      </header>
+
+     
+      <section class="monitor-calendar-layout">
+        <section class="card monitor-calendar-card">
+          <div class="card-body">
+            <div class="monitor-calendar-toolbar">
+              <div>
+                <p class="client-kicker">Calendrier</p>
+                <h2 class="h3">Vue semaine</h2>
+              </div>
+              <div class="monitor-week-nav">
+                <button class="btn btn-outline btn-sm" type="button" id="prev-week-btn">Semaine precedente</button>
+                <div class="monitor-week-label" id="week-label"></div>
+                <button class="btn btn-outline btn-sm" type="button" id="next-week-btn">Semaine suivante</button>
+              </div>
+            </div>
+
+            <div class="exam-grid-header" id="calendar-header"></div>
+            <div class="exam-grid-body" id="calendar-grid"></div>
+          </div>
+        </section>
+
+        <aside class="card monitor-details-card">
+          <div class="card-body">
+            <div class="section-header">
+              <div>
+                <p class="client-kicker">Details</p>
+                <h2 class="h3">Seance selectionnee</h2>
+              </div>
+              <span class="badge badge-primary" id="booking-total-badge">0 seance</span>
+            </div>
+
+            <div id="selected-booking-panel" class="monitor-selected-panel">
+              <div class="monitor-empty-state">Selectionnez une seance dans le calendrier.</div>
+            </div>
+
+            <div class="monitor-day-list-wrap">
+              <p class="client-kicker">Jour selectionne</p>
+              <div class="monitor-day-list" id="day-bookings-list"></div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="shared.js"></script>
+    <script src="Moni.js"></script>
+
+</body>
+</html>

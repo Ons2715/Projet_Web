@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CityDrive - Quizz Client</title>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="dashboardClient.css"/>
+<link rel="stylesheet" href="quizClient.css"/>
+</head>
+<body>
+<div class="client-shell">
+  <aside class="client-sidebar">
+    <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+    
+    <nav class="client-nav">
+      <a class="client-nav-link" href="./dashboardClient.html">Historique</a>
+      <a class="client-nav-link active" href="./Quizz.html">Quizz</a>
+      <a class="client-nav-link" href="./Lecons.html">Leçons</a>
+      <a class="client-nav-link" href="./planning.html">Reservation</a>
+    </nav>
+
+   
+    <div class="client-sidebar-footer">
+      <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+      <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="quiz-logout-link">Deconnexion</a>
+    </div>
+  </aside>
+
+  <main class="client-main quiz-main">
+    <div id="view-topics">
+      <header class="client-topbar">
+        <div>
+          <p class="client-kicker">Quizz</p>
+          <h1 class="h2">Code de la route</h1>
+          <p class="text-muted">Choisissez un level homogene avec des questions melangees de plusieurs themes.</p>
+        </div>
+        <a class="btn btn-outline" href="./dashboardClient.html">Mon espace</a>
+      </header>
+
+      <section class="quiz-toolbar card">
+        <div class="card-body">
+          <div class="quiz-toolbar-content">
+            <div>
+              <p class="quiz-label">Mode d'entrainement</p>
+              <h2 class="h4">Selection des levels</h2>
+            </div>
+            <div class="quiz-toolbar-actions">
+              <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled>
+                Lancer le level
+              </button>
+              <button class="btn btn-outline btn-lg" onclick="startExamBlanc()">
+                Examen blanc
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="topics-grid" id="topics-grid"></section>
+
+      <section class="card quiz-results-panel" id="scores-section">
+        <div class="card-body">
+          <div class="section-header">
+            <div>
+              <p class="quiz-label">Historique</p>
+              <h2 class="h3">Mes derniers resultats</h2>
+            </div>
+            <span class="badge badge-primary">Code</span>
+          </div>
+          <table class="table" id="scores-table">
+            <thead><tr><th>Theme</th><th>Score</th><th>Note</th><th>Date</th></tr></thead>
+            <tbody id="scores-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <div id="view-quiz" style="display:none">
+      <header class="client-topbar">
+        <div>
+          <p class="client-kicker">Session en cours</p>
+          <h1 class="h2">Questionnaire</h1>
+        </div>
+        <button class="btn btn-ghost" onclick="exitQuiz()">Quitter</button>
+      </header>
+
+      <div class="quiz-container">
+        <div class="quiz-header">
+          <div class="quiz-counter" id="quiz-counter">Question 1/10</div>
+          <div class="progress-bar quiz-progress"><div class="progress-fill" id="quiz-progress-bar" style="width:0%"></div></div>
+          <div class="quiz-timer" id="quiz-timer">0:30</div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-context" id="q-topic-badge"></div>
+          <div class="question-text" id="q-text"></div>
+          <img class="question-image" id="q-image" alt="Illustration de la question" style="display:none" />
+          <div class="answers-list" id="answers-list"></div>
+          <div class="answer-explanation" id="answer-explanation"></div>
+        </div>
+
+        <div class="quiz-actions">
+          <div id="feedback-msg" class="quiz-feedback"></div>
+          <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" style="display:none">
+            Suivant
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-results" style="display:none">
+      <header class="client-topbar">
+        <div>
+          <p class="client-kicker">Resultats</p>
+          <h1 class="h2">Bilan du quizz</h1>
+        </div>
+      </header>
+
+      <div class="quiz-container">
+        <div class="card">
+          <div class="results-card">
+            <div class="results-emoji" id="res-emoji"></div>
+            <div class="results-score" id="res-score"></div>
+            <div class="results-sub" id="res-sub"></div>
+            <div class="results-breakdown">
+              <div class="result-stat correct"><div class="val" id="res-correct"></div><div class="label">Correctes</div></div>
+              <div class="result-stat wrong"><div class="val" id="res-wrong"></div><div class="label">Incorrectes</div></div>
+              <div class="result-stat"><div class="val" id="res-time"></div><div class="label">Temps moyen</div></div>
+            </div>
+            <div class="results-actions">
+              <button class="btn btn-primary btn-lg" onclick="restartQuiz()">Recommencer</button>
+              <button class="btn btn-outline btn-lg" onclick="showTopics()">Autres themes</button>
+              <a href="dashboardClient.html" class="btn btn-ghost btn-lg">Mon espace</a>
+            </div>
+          </div>
+        </div>
+
+        <div id="wrong-review" class="wrong-review"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const TOPICS = [
+  { id: 'priorite', name: 'Priorites', icon: 'PR' },
+  { id: 'signaux', name: 'Signalisation', icon: 'SI' },
+  { id: 'vitesse', name: 'Vitesses', icon: 'VI' },
+  { id: 'securite', name: 'Securite', icon: 'SE' },
+  { id: 'alcool', name: 'Alcool', icon: 'AL' },
+  { id: 'mecanique', name: 'Mecanique', icon: 'ME' },
+  { id: 'environnement', name: 'Environnement', icon: 'EN' },
+  { id: 'autoroute', name: 'Autoroute', icon: 'AU' },
+];
+
+const QUESTION_BANK = {
+  priorite: [
+    { topicId: 'priorite', q: "A une intersection non reglementee, qui est prioritaire ?", answers: ["Le vehicule venant de la droite","Le vehicule venant de la gauche","Le vehicule le plus rapide","Le premier arrive"], correct: 0, expl: "La priorite a droite s'applique a toute intersection non reglementee." },
+    { topicId: 'priorite', q: "Qui est prioritaire sur un carrefour giratoire ?", answers: ["Les vehicules qui entrent","Les vehicules deja engages","Celui qui vient de droite","Le plus grand vehicule"], correct: 1, expl: "Les vehicules deja engages dans un giratoire sont prioritaires." },
+    { topicId: 'priorite', q: "Face a un panneau 'Cedez le passage', vous devez :", answers: ["Passer sans ralentir","Vous engager en premier","Laisser passer les usagers prioritaires","Klaxonner"], correct: 2, expl: "Ce panneau impose de laisser la priorite aux usagers engages." }
+  ],
+  signaux: [
+    { topicId: 'signaux', q: "Que signifie ce panneau triangulaire ?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/France_road_sign_A1.svg/240px-France_road_sign_A1.svg.png", answers: ["Dos d'ane","Virage dangereux","Danger general","Carrefour"], correct: 2, expl: "Le triangle A1 avertit d'un danger general." },
+    { topicId: 'signaux', q: "Un panneau rond bleu indique :", answers: ["Un danger","Une obligation","Une interdiction","Une information"], correct: 1, expl: "Les panneaux ronds bleus indiquent une obligation." },
+    { topicId: 'signaux', q: "Que signifie ce panneau STOP ?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/France_road_sign_AB4.svg/240px-France_road_sign_AB4.svg.png", answers: ["Ralentir legerement","Arret obligatoire","Stationnement interdit","Sens interdit"], correct: 1, expl: "Le panneau STOP impose un arret complet." }
+  ],
+  vitesse: [
+    { topicId: 'vitesse', q: "Quelle est la vitesse maximale autorisee sur autoroute par temps sec ?", answers: ["110 km/h","130 km/h","150 km/h","120 km/h"], correct: 1, expl: "Sur autoroute, la vitesse maximale est de 130 km/h par temps sec." },
+    { topicId: 'vitesse', q: "En agglomeration, quelle est la vitesse maximale par defaut ?", answers: ["30 km/h","50 km/h","70 km/h","45 km/h"], correct: 1, expl: "En agglomeration, la vitesse est limitee a 50 km/h sauf indication contraire." },
+    { topicId: 'vitesse', q: "Par temps de pluie sur autoroute, la vitesse est limitee a :", answers: ["100 km/h","110 km/h","120 km/h","130 km/h"], correct: 1, expl: "Sous la pluie, l'autoroute est limitee a 110 km/h." }
+  ],
+  securite: [
+    { topicId: 'securite', q: "Le port de la ceinture de securite est obligatoire :", answers: ["Uniquement sur autoroute","A l'avant uniquement","Pour tous les occupants","Uniquement pour le conducteur"], correct: 2, expl: "La ceinture est obligatoire pour tous les occupants du vehicule." },
+    { topicId: 'securite', q: "En cas de panne sur autoroute, ou doit-on se placer ?", answers: ["Au centre de la voie","Sur la bande d'arret d'urgence","Dans la premiere voie","Juste devant le vehicule"], correct: 1, expl: "Il faut se placer sur la bande d'arret d'urgence." },
+    { topicId: 'securite', q: "Cette image montre-t-elle une bonne distance de securite ?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Autoroute_A20_-_France.jpg/320px-Autoroute_A20_-_France.jpg", answers: ["Oui, si la circulation est fluide","Non, les vehicules sont trop proches","Oui, seulement la nuit","Impossible a savoir"], correct: 1, expl: "Il faut conserver une distance permettant de freiner sans risque." }
+  ],
+  alcool: [
+    { topicId: 'alcool', q: "Quel est le taux d'alcoolemie maximal autorise pour un conducteur experimente ?", answers: ["0,2 g/L","0,5 g/L","0,8 g/L","1,0 g/L"], correct: 1, expl: "La limite est de 0,5 g/L pour un conducteur experimente." },
+    { topicId: 'alcool', q: "Pour un jeune conducteur, la limite legale est de :", answers: ["0,0 g/L","0,2 g/L","0,5 g/L","0,8 g/L"], correct: 1, expl: "En periode probatoire, la limite est de 0,2 g/L." }
+  ],
+  mecanique: [
+    { topicId: 'mecanique', q: "Quand faut-il verifier la pression des pneus ?", answers: ["Seulement en hiver","Une fois par an","A froid, regulierement","Uniquement avant un long trajet"], correct: 2, expl: "La pression doit etre verifiee a froid regulierement." },
+    { topicId: 'mecanique', q: "Que signifie ce voyant moteur orange ?", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Check_engine_light_icon.svg/240px-Check_engine_light_icon.svg.png", answers: ["Frein a main serre","Anomalie moteur","Pneu creve","Feux allumes"], correct: 1, expl: "Le voyant moteur orange signale une anomalie a faire controler." }
+  ],
+  environnement: [
+    { topicId: 'environnement', q: "Quelle conduite est la plus economique en carburant ?", answers: ["Accelerations brusques","Conduite souple et anticipee","Rouler tres vite","Freiner frequemment"], correct: 1, expl: "La conduite souple reduit la consommation." },
+    { topicId: 'environnement', q: "Couper le moteur a l'arret prolonge permet :", answers: ["D'user plus vite le moteur","De consommer moins","D'augmenter le bruit","De freiner mieux"], correct: 1, expl: "Couper le moteur a l'arret evite une consommation inutile." }
+  ],
+  autoroute: [
+    { topicId: 'autoroute', q: "Sur autoroute, la bande d'arret d'urgence est reservee :", answers: ["Aux depassements","Aux pannes et urgences","Aux vehicules lents","A la livraison"], correct: 1, expl: "La BAU est reservee aux pannes et urgences." },
+    { topicId: 'autoroute', q: "Avant de depasser sur autoroute, vous devez d'abord :", answers: ["Freiner brusquement","Verifier retros et angle mort","Vous rabattre a droite","Allumer les warnings"], correct: 1, expl: "La verification des retros et de l'angle mort est indispensable." }
+  ]
+};
+
+const LEVELS = [
+  { id: 'level1', name: 'Level 1', icon: 'L1', count: 30, description: '30 questions mixtes, niveau debutant.' },
+  { id: 'level2', name: 'Level 2', icon: 'L2', count: 30, description: '30 questions homogenes avec visuels.' },
+  { id: 'level3', name: 'Level 3', icon: 'L3', count: 30, description: '30 questions type examen avec photos.' }
+];
+
+let selectedLevel = null;
+let currentQuestions = [];
+let currentQIdx = 0;
+let answered = false;
+let quizResults = [];
+let timerInterval = null;
+let timeLeft = 30;
+const mockScores = [
+  { topic: 'Level 1', score: '26/30', pct: 87, date: '20 avr. 2026' },
+  { topic: 'Level 2', score: '24/30', pct: 80, date: '18 avr. 2026' },
+];
+
+function renderTopics() {
+  const grid = document.getElementById('topics-grid');
+  grid.innerHTML = LEVELS.map((level) => {
+    const sel = selectedLevel === level.id;
+    return `
+      <div class="topic-card ${sel ? 'selected' : ''}" onclick="toggleTopic('${level.id}')">
+        <div class="topic-icon">${level.icon}</div>
+        <div class="topic-name">${level.name}</div>
+        <div class="topic-count">${level.count} questions mixtes</div>
+        <div class="topic-count">${level.description}</div>
+        <div class="topic-progress">
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.random()*60+30}%"></div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleTopic(id) {
+  selectedLevel = id;
+  renderTopics();
+  document.getElementById('start-btn').disabled = !selectedLevel;
+}
+
+function renderScores() {
+  document.getElementById('scores-body').innerHTML = mockScores.map((s) => `
+    <tr>
+      <td>${s.topic}</td>
+      <td><strong>${s.score}</strong></td>
+      <td><span class="badge ${s.pct >= 80 ? 'badge-success' : s.pct >= 60 ? 'badge-warning' : 'badge-danger'}">${s.pct}%</span></td>
+      <td style="color:var(--on-surface-muted)">${s.date}</td>
+    </tr>
+  `).join('');
+}
+
+function startQuiz() {
+  const level = LEVELS.find((item) => item.id === selectedLevel);
+  if (!level) {
+    Toast.error('Aucune question disponible.');
+    return;
+  }
+  currentQuestions = generateLevelQuestions(level);
+  currentQIdx = 0;
+  quizResults = [];
+  document.getElementById('view-topics').style.display = 'none';
+  document.getElementById('view-results').style.display = 'none';
+  document.getElementById('view-quiz').style.display = 'block';
+  showQuestion();
+}
+
+function startExamBlanc() {
+  currentQuestions = generateQuestionSet(30);
+  currentQIdx = 0;
+  quizResults = [];
+  document.getElementById('view-topics').style.display = 'none';
+  document.getElementById('view-results').style.display = 'none';
+  document.getElementById('view-quiz').style.display = 'block';
+  showQuestion();
+}
+
+function showQuestion() {
+  answered = false;
+  const q = currentQuestions[currentQIdx];
+  const pct = (currentQIdx / currentQuestions.length) * 100;
+  document.getElementById('quiz-counter').textContent = `Question ${currentQIdx + 1}/${currentQuestions.length}`;
+  document.getElementById('quiz-progress-bar').style.width = pct + '%';
+  document.getElementById('q-topic-badge').textContent = TOPICS.find((t) => t.id === q.topicId)?.name || 'Code de la route';
+  document.getElementById('q-text').textContent = q.q;
+  const image = document.getElementById('q-image');
+  if (q.image) {
+    image.src = q.image;
+    image.style.display = 'block';
+  } else {
+    image.removeAttribute('src');
+    image.style.display = 'none';
+  }
+  document.getElementById('answer-explanation').className = 'answer-explanation';
+  document.getElementById('answer-explanation').textContent = '';
+  document.getElementById('feedback-msg').textContent = '';
+  document.getElementById('next-btn').style.display = 'none';
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('answers-list').innerHTML = q.answers.map((a, i) => `
+    <button class="answer-btn" onclick="selectAnswer(${i})" id="ans-${i}">
+      <span class="answer-letter">${letters[i]}</span>
+      <span>${a}</span>
+    </button>
+  `).join('');
+
+  clearInterval(timerInterval);
+  timeLeft = 30;
+  updateTimer();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      selectAnswer(-1);
+    }
+  }, 1000);
+}
+
+function updateTimer() {
+  const el = document.getElementById('quiz-timer');
+  el.textContent = `0:${String(timeLeft).padStart(2,'0')}`;
+  el.className = 'quiz-timer' + (timeLeft <= 10 ? ' danger' : timeLeft <= 20 ? ' warning' : '');
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  const q = currentQuestions[currentQIdx];
+  const isCorrect = idx === q.correct;
+  quizResults.push({ q, chosen: idx, correct: isCorrect, time: 30 - timeLeft });
+
+  document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === idx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const expl = document.getElementById('answer-explanation');
+  expl.textContent = q.expl || 'Voir le cours pour plus de details.';
+  expl.classList.add('show');
+
+  const msg = document.getElementById('feedback-msg');
+  msg.textContent = idx === -1 ? 'Temps ecoule !' : isCorrect ? 'Bonne reponse !' : 'Mauvaise reponse.';
+  msg.style.color = isCorrect ? 'var(--success)' : 'var(--danger)';
+  document.getElementById('next-btn').style.display = 'flex';
+}
+
+function nextQuestion() {
+  currentQIdx++;
+  if (currentQIdx >= currentQuestions.length) showResults();
+  else showQuestion();
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  document.getElementById('view-quiz').style.display = 'none';
+  document.getElementById('view-topics').style.display = 'none';
+  document.getElementById('view-results').style.display = 'block';
+
+  const correct = quizResults.filter((r) => r.correct).length;
+  const total = quizResults.length;
+  const pct = Math.round((correct / total) * 100);
+  const avgTime = Math.round(quizResults.reduce((s, r) => s + r.time, 0) / total);
+
+  document.getElementById('res-emoji').textContent = pct >= 80 ? 'A+' : pct >= 60 ? 'OK' : 'KO';
+  document.getElementById('res-score').textContent = `${correct}/${total}`;
+  document.getElementById('res-sub').textContent = pct >= 80 ? 'Excellent, vous maitrisez bien ce theme.' : pct >= 60 ? 'Bon resultat, continuez les revisions.' : 'Il faut encore reviser un peu.';
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = total - correct;
+  document.getElementById('res-time').textContent = avgTime + 's';
+
+  const wrongs = quizResults.filter((r) => !r.correct);
+  document.getElementById('wrong-review').innerHTML = wrongs.length ? `
+    <div class="h4 review-title">Questions a revoir (${wrongs.length})</div>
+    ${wrongs.map((r) => `
+      <div class="card review-card">
+        <div class="card-body">
+          <div class="review-question">${r.q.q}</div>
+          <div class="review-wrong">Votre reponse : ${r.q.answers[r.chosen] || 'Temps ecoule'}</div>
+          <div class="review-correct">Bonne reponse : ${r.q.answers[r.q.correct]}</div>
+          <div class="review-expl">${r.q.expl}</div>
+        </div>
+      </div>
+    `).join('')}
+  ` : '';
+
+  mockScores.unshift({
+    topic: LEVELS.find((level) => level.id === selectedLevel)?.name || 'Examen blanc',
+    score: `${correct}/${total}`,
+    pct,
+    date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+  });
+}
+
+function restartQuiz() {
+  document.getElementById('view-results').style.display = 'none';
+  document.getElementById('wrong-review').innerHTML = '';
+  startQuiz();
+}
+
+function showTopics() {
+  document.getElementById('view-results').style.display = 'none';
+  document.getElementById('view-quiz').style.display = 'none';
+  document.getElementById('view-topics').style.display = 'block';
+  renderScores();
+}
+
+function exitQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('view-quiz').style.display = 'none';
+  document.getElementById('view-topics').style.display = 'block';
+  renderScores();
+}
+
+function shuffleArray(items) {
+  return [...items].sort(() => Math.random() - 0.5);
+}
+
+function generateQuestionSet(count) {
+  const base = TOPICS.flatMap((topic) => (QUESTION_BANK[topic.id] || []).map((question, index) => ({
+    ...question,
+    uid: `${topic.id}-${index}-${Math.random().toString(36).slice(2, 7)}`
+  })));
+
+  const output = [];
+  while (output.length < count) {
+    output.push(...shuffleArray(base).map((question, index) => ({
+      ...question,
+      uid: `${question.uid}-${output.length + index}`
+    })));
+  }
+
+  return shuffleArray(output).slice(0, count);
+}
+
+function generateLevelQuestions(level) {
+  return generateQuestionSet(level.count);
+}
+
+const quizUser = Auth.get();
+if (quizUser && (quizUser.firstName || quizUser.lastName)) {
+  document.getElementById('quiz-name-label').textContent = `${quizUser.firstName || ''} ${quizUser.lastName || ''}`.trim();
+}
+if (quizUser && quizUser.formation) {
+  document.getElementById('quiz-formation-badge').textContent = quizUser.formation;
+}
+
+document.getElementById('quiz-logout-link').addEventListener('click', function () {
+  Auth.clear();
+});
+
+renderTopics();
+renderScores();
+</script>
+</body>
+</html>

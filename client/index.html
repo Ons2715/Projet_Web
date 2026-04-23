@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CityDrive - Driving School</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="./index.css" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: "#f8f9ff",
+            surface: "#f8f9ff",
+            "surface-container": "#e5eeff",
+            "surface-container-low": "#eff4ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "primary-container": "#ffb100",
+            "on-primary-container": "#6a4700",
+            "on-background": "#0b1c30",
+            "on-surface": "#0b1c30",
+            tertiary: "#545f73",
+            secondary: "#466800",
+            "secondary-container": "#b7f64a",
+            "on-secondary-container": "#4b6f00"
+          },
+          spacing: {
+            xs: "4px",
+            sm: "12px",
+            md: "24px",
+            lg: "48px",
+            xl: "80px",
+            gutter: "24px"
+          },
+          fontFamily: {
+            sans: ["Lexend", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="flex min-h-screen flex-col bg-background text-on-background">
+  <nav class="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <a class="text-2xl font-black uppercase tracking-tight text-slate-900" href="./index.html">CityDrive</a>
+
+      <div class="hidden items-center gap-8 md:flex">
+        <a class="border-b-2 border-amber-500 pb-1 font-bold text-amber-500 transition-transform duration-150 active:scale-95" href="./index.html">Accueil</a>
+        <a class="font-medium text-slate-600 transition-colors duration-200 hover:text-amber-600 active:scale-95" href="./inscription.html">Inscription</a>
+        <a class="font-medium text-slate-600 transition-colors duration-200 hover:text-amber-600 active:scale-95" href="./planning.html">Planning</a>
+        <a class="font-medium text-slate-600 transition-colors duration-200 hover:text-amber-600 active:scale-95" href="./tarifs.html">Tarifs</a>
+      </div>
+
+      <div class="hidden items-center gap-4 md:flex">
+        <a class="px-4 py-2 text-sm font-semibold text-on-surface transition-colors duration-200 hover:text-amber-600" href="./login.html">Connexion</a>
+      </div>
+
+      <button class="text-on-surface md:hidden" type="button" aria-label="Ouvrir le menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="flex-1">
+    <section class="relative flex h-[600px] w-full items-center justify-center overflow-hidden">
+      <div class="absolute inset-0">
+        <img
+          alt="Modern city road from driver's perspective at dusk"
+          class="h-full w-full object-cover object-center"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3T700WYJwLO44PKRgGgA2jKTHeJ4yGU2iSKtRuIG_6K4WoAxV_Q9ysBtdSULLqNKTNmKcDaI8W3gcLsRenE-jkKeVmAK3vCbg28K8xqK2FiINUXbecl083UigOtRipEQtVMpvGKPRMxz9ZNP6zErDt0syNXZwlegIFcc52cqH4Yl87I2iy8K5om0Hel5qW5evTuTOMj2e--8z1K7JK9IMYZeKWXUsbtfB395hRYxs88VGb8GQoAZY7sEEVny0I--nhac5dUYCkkQo"
+        />
+        <div class="absolute inset-0 bg-slate-900/70"></div>
+      </div>
+
+      <div class="relative z-10 mx-auto flex w-full max-w-7xl items-center px-6">
+        <div class="max-w-2xl text-white">
+          <h1 class="mb-6 text-4xl font-bold leading-tight md:text-5xl">
+            L'Excellence de la <span class="text-primary-container">Conduite Urbaine</span>
+          </h1>
+          <p class="mb-8 text-lg text-slate-200">
+            Maitrisez le code de la route, reservez vos heures de conduite en ligne et suivez votre progression avec une ecole nouvelle generation.
+          </p>
+          <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./login.html">
+            Commencer maintenant
+            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-lowest py-xl">
+      <div class="mx-auto max-w-7xl px-6">
+        <div class="mb-12 text-center">
+          <h2 class="text-3xl font-bold uppercase tracking-wide text-slate-800">Nos Formations</h2>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <a class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md" href="./formations.html#code">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">menu_book</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Code</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Packs Code</p>
+              <ul class="formation-pack-list">
+                <li><span>Pack Revision</span><strong>8 seances - 120 DT</strong></li>
+                <li><span>Pack Standard</span><strong>15 seances - 190 DT</strong></li>
+                <li><span>Pack Illimite</span><strong>Acces complet - 250 DT</strong></li>
+              </ul>
+            </div>
+          </a>
+
+          <a class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md" href="./formations.html#permis-b">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">directions_car</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Permis B</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Packs Permis B</p>
+              <ul class="formation-pack-list">
+                <li><span>Pack Decouverte</span><strong>10 seances - 780 DT</strong></li>
+                <li><span>Pack Progression</span><strong>20 seances - 1 150 DT</strong></li>
+                <li><span>Pack Complet</span><strong>30 seances - 1 450 DT</strong></li>
+              </ul>
+            </div>
+          </a>
+
+          <a class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md" href="./formations.html#automatique">
+            <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
+            <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">auto_transmission</span>
+            <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Permis B Automatique</h3>
+            <div class="formation-pack">
+              <p class="formation-pack-title">Packs Boite Auto</p>
+              <ul class="formation-pack-list">
+                <li><span>Pack Decouverte</span><strong>8 seances - 690 DT</strong></li>
+                <li><span>Pack Progression</span><strong>15 seances - 980 DT</strong></li>
+                <li><span>Pack Complet</span><strong>25 seances - 1 300 DT</strong></li>
+              </ul>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-surface-container-low py-xl">
+      <div class="mx-auto max-w-7xl px-6">
+        <div class="mb-xl text-center">
+          <h2 class="mb-xs text-3xl font-bold text-on-surface">Votre parcours vers le permis</h2>
+          <p class="text-tertiary">Une methode claire, sans surprise.</p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute left-0 top-1/2 z-0 hidden h-[2px] w-full -translate-y-1/2 bg-surface-container-highest md:block"></div>
+
+          <div class="relative z-10 grid grid-cols-1 gap-md md:grid-cols-5">
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-primary-container font-bold text-slate-900 shadow-sm">1</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">app_registration</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Inscription</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-surface-container-high font-bold text-tertiary shadow-sm">2</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">credit_card</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Paiement</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-surface-container-high font-bold text-tertiary shadow-sm">3</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">menu_book</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Acces aux cours</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-surface-container-high font-bold text-tertiary shadow-sm">4</div>
+              <div class="mb-xs mt-sm text-tertiary"><span class="material-symbols-outlined text-[32px]">calendar_month</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Reservation</h3>
+            </div>
+
+            <div class="relative rounded-lg border border-surface-container bg-surface-container-lowest p-md text-center shadow-[0_4px_24px_rgba(30,41,59,0.04)]">
+              <div class="absolute left-1/2 top-0 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-surface-container-lowest bg-secondary-container font-bold text-on-secondary-container shadow-sm">5</div>
+              <div class="mb-xs mt-sm text-secondary"><span class="material-symbols-outlined material-symbol-filled text-[32px]">workspace_premium</span></div>
+              <h3 class="text-base font-semibold text-on-surface">Examen</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-slate-800 py-xl text-surface-container-lowest">
+      <div class="mx-auto max-w-4xl px-6 text-center">
+        <h2 class="mb-6 text-3xl font-bold md:text-4xl">Pret a prendre le volant ?</h2>
+        <p class="mb-8 text-lg text-slate-300">Rejoignez des milliers de conducteurs formes avec succes par CityDrive.</p>
+        <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./inscription.html">
+          Creer mon compte
+          <span class="material-symbols-outlined">how_to_reg</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="w-full border-t border-slate-800 bg-slate-900 text-sm">
+    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-6 py-12 md:flex-row">
+      <div>
+        <div class="mb-4 text-xl font-bold text-white">CityDrive</div>
+        <p class="text-slate-400">© 2024 CityDrive Driving School. Excellence in Urban Mobility.</p>
+      </div>
+
+      <div class="flex flex-col gap-6 md:flex-row">
+        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./legal.html">Mentions Legales</a>
+        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./privacy.html">Politique de Confidentialite</a>
+        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./terms.html">Conditions Generales</a>
+        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./contact.html">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

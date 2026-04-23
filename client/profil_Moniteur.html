@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CityDrive - Profil Moniteur</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="dashboardClient.css" />
+  <link rel="stylesheet" href="dashboradMoniteur.css" />
+</head>
+<body>
+  <div class="client-shell monitor-shell">
+    <aside class="client-sidebar">
+      <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+      
+
+      <nav class="client-nav">
+        <a class="client-nav-link" href="./dashboradMoniteur.html">Planning</a>
+        <a class="client-nav-link" href="./eleves.html">Eleves</a>
+      </nav>
+
+      <div class="client-sidebar-footer">
+        <a class="client-sidebar-footer-link active" href="./profil_Moniteur.html">Profil</a>
+        <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="monitor-profile-logout-link">Deconnexion</a>
+      </div>
+    </aside>
+
+    <main class="client-main monitor-main">
+      <header class="client-topbar monitor-topbar">
+        <div>
+          <p class="client-kicker">Profil Moniteur</p>
+          <h1 class="h2">Mes coordonnees</h1>
+          <p class="text-muted">Mettez a jour votre identite, votre telephone et votre adresse depuis votre espace moniteur.</p>
+        </div>
+        <a class="btn btn-outline" href="./dashboradMoniteur.html">Retour planning</a>
+      </header>
+
+      
+      <section class="card monitor-profile-card">
+        <div class="card-body">
+          <div class="section-header">
+            <div>
+              <p class="client-kicker">Informations</p>
+              <h2 class="h3">Mon profil moniteur</h2>
+            </div>
+          </div>
+
+          <form class="profile-form" id="monitor-profile-form">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-firstname">Prenom</label>
+                <input class="form-input" id="monitor-profile-firstname" type="text" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-lastname">Nom</label>
+                <input class="form-input" id="monitor-profile-lastname" type="text" />
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-email">Email</label>
+                <input class="form-input" id="monitor-profile-email" type="email" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="monitor-profile-phone">Telephone</label>
+                <input class="form-input" id="monitor-profile-phone" type="tel" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="monitor-profile-address">Adresse</label>
+              <input class="form-input" id="monitor-profile-address" type="text" placeholder="Rue, ville, gouvernorat" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="monitor-profile-formation">Formation</label>
+              <input class="form-input" id="monitor-profile-formation" type="text" readonly />
+            </div>
+
+            <div class="profile-form-actions">
+              <button class="btn btn-primary btn-lg" type="submit">Enregistrer les modifications</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const MONITOR_PROFILE_KEY = "citydrive_monitor_profile";
+    const monitorUser = Auth.get() || {};
+
+    function syncMonitorProfile() {
+      localStorage.setItem(MONITOR_PROFILE_KEY, JSON.stringify({
+        firstName: monitorUser.firstName || "Mourad",
+        lastName: monitorUser.lastName || "Ben Salah",
+        phone: monitorUser.phone || "+216 20 000 000",
+        photo: monitorUser.photo || monitorUser.avatar || ""
+      }));
+    }
+
+    function refreshMonitorProfileView() {
+      const fullName = `${monitorUser.firstName || "Jean"} ${monitorUser.lastName || "Dupont"}`.trim();
+      const formation = monitorUser.formation || "Permis B";
+      const phone = monitorUser.phone || "-";
+
+      document.getElementById("monitor-profile-name-label").textContent = fullName;
+      document.getElementById("monitor-profile-formation-badge").textContent = formation;
+      document.getElementById("monitor-profile-phone-stat").textContent = phone;
+      document.getElementById("monitor-profile-formation-stat").textContent = formation;
+
+      document.getElementById("monitor-profile-firstname").value = monitorUser.firstName || "Jean";
+      document.getElementById("monitor-profile-lastname").value = monitorUser.lastName || "Dupont";
+      document.getElementById("monitor-profile-email").value = monitorUser.email || "";
+      document.getElementById("monitor-profile-phone").value = monitorUser.phone || "";
+      document.getElementById("monitor-profile-address").value = monitorUser.address || "";
+      document.getElementById("monitor-profile-formation").value = formation;
+    }
+
+    document.getElementById("monitor-profile-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      monitorUser.firstName = document.getElementById("monitor-profile-firstname").value.trim();
+      monitorUser.lastName = document.getElementById("monitor-profile-lastname").value.trim();
+      monitorUser.email = document.getElementById("monitor-profile-email").value.trim();
+      monitorUser.phone = document.getElementById("monitor-profile-phone").value.trim();
+      monitorUser.address = document.getElementById("monitor-profile-address").value.trim();
+      monitorUser.role = "monitor";
+      Auth.set(monitorUser);
+      syncMonitorProfile();
+      refreshMonitorProfileView();
+      Toast.success("Profil moniteur mis a jour.");
+    });
+
+    document.getElementById("monitor-profile-logout-link").addEventListener("click", function () {
+      Auth.clear();
+    });
+
+    syncMonitorProfile();
+    refreshMonitorProfileView();
+  </script>
+</body>
+</html>

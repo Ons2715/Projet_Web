@@ -1,0 +1,70 @@
+body {
+  font-family: "Lexend", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.formation-corner {
+  clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+}
+
+.material-symbol-filled {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.formation-card {
+  overflow: hidden;
+}
+
+.formation-pack {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 16px;
+}
+
+.formation-pack-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b77900;
+}
+
+.formation-pack-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.formation-pack-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(203, 213, 225, 0.55);
+}
+
+.formation-pack-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.formation-pack-list span,
+.formation-pack-list strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.formation-pack-list span {
+  color: #64748b;
+}
+
+.formation-pack-list strong {
+  text-align: right;
+  color: #0f172a;
+}

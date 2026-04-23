@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CityDrive - Eleves Moniteur</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" href="dashboardClient.css" />
+  <link rel="stylesheet" href="dashboradMoniteur.css" />
+</head>
+<body>
+  <div class="client-shell monitor-shell">
+    <aside class="client-sidebar">
+      <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+      
+      <nav class="client-nav">
+        <a class="client-nav-link" href="./dashboradMoniteur.html">Planning</a>
+        <a class="client-nav-link active" href="./eleves.html">Eleves</a>
+      </nav>
+
+      <div class="client-sidebar-footer">
+        <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+        <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="students-logout-link">Deconnexion</a>
+      </div>
+    </aside>
+
+    <main class="client-main monitor-main">
+      <header class="client-topbar monitor-topbar">
+        <div>
+          <p class="client-kicker">Eleves</p>
+          <h1 class="h2">Liste des eleves</h1>
+          <p class="text-muted">Consultez les noms, prenoms et numeros de telephone des eleves ayant reserve une seance.</p>
+        </div>
+        <a class="btn btn-outline" href="./dashboradMoniteur.html">Retour planning</a>
+      </header>
+
+      <section class="card monitor-bookings-card">
+        <div class="card-body">
+          <div class="section-header">
+            <div>
+              <p class="client-kicker">Repertoire</p>
+              <h2 class="h3">Mes eleves</h2>
+            </div>
+            <span class="badge badge-primary" id="students-total-badge">0 eleve</span>
+          </div>
+
+          <div class="monitor-bookings-list" id="students-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="eleves.js"></script>
+</body>
+</html>

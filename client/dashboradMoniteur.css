@@ -1,0 +1,293 @@
+body {
+  background:
+    radial-gradient(circle at top right, rgba(255, 177, 0, 0.12), transparent 26%),
+    linear-gradient(180deg, #f8f9ff 0%, #f2f6ff 100%);
+}
+
+.monitor-shell {
+  min-height: 100vh;
+  height: 100vh;
+}
+
+.monitor-main {
+  background:
+    radial-gradient(circle at top left, rgba(255, 177, 0, 0.08), transparent 24%),
+    linear-gradient(180deg, #f8f9ff 0%, #f2f6ff 100%);
+}
+
+.monitor-topbar {
+  align-items: center;
+}
+
+.monitor-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.monitor-stat-value {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.monitor-stat-text {
+  font-size: 26px;
+}
+
+.monitor-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+}
+
+.monitor-calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.monitor-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.monitor-week-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+.exam-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(90px, 1fr));
+  gap: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+  overflow-x: auto;
+}
+
+.exam-grid-header button {
+  min-width: 90px;
+  border: 0;
+  background: transparent;
+  color: #8a96ac;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.exam-grid-header .active-day {
+  color: var(--primary-dark);
+}
+
+.exam-grid-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(90px, 1fr));
+  grid-template-rows: repeat(10, 46px);
+  min-height: 460px;
+  overflow-x: auto;
+  background-image:
+    linear-gradient(to right, #edf2fb 1px, transparent 1px),
+    linear-gradient(to bottom, #f4f7fc 1px, transparent 1px);
+  background-size: calc(100% / 7) 100%, 100% 46px;
+}
+
+.exam-card {
+  position: relative;
+  z-index: 2;
+  margin: 6px;
+  border: 1px solid #ffd57a;
+  border-left: 4px solid var(--primary);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #fff8e8 0%, #ffffff 100%);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.exam-card:hover,
+.exam-card.selected {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.exam-card span,
+.exam-card strong {
+  display: block;
+}
+
+.exam-card strong {
+  margin: 4px 0 2px;
+  font-size: 13px;
+  color: var(--on-surface);
+}
+
+.exam-time {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.monitor-details-card,
+.monitor-calendar-card {
+  overflow: visible;
+}
+
+.monitor-selected-panel {
+  margin-bottom: 20px;
+}
+
+.monitor-booking-detail h3 {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.monitor-detail-sub {
+  margin-bottom: 14px;
+  color: var(--on-surface-muted);
+}
+
+.monitor-booking-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-bottom: 14px;
+  color: var(--on-surface-muted);
+  font-size: 14px;
+}
+
+.monitor-booking-location,
+.monitor-booking-note {
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-low);
+  margin-bottom: 12px;
+}
+
+.monitor-booking-location strong,
+.monitor-booking-note strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+}
+
+.monitor-day-list-wrap {
+  border-top: 1px solid var(--border-light);
+  padding-top: 16px;
+}
+
+.monitor-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.monitor-day-item {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.monitor-day-item.active,
+.monitor-day-item:hover {
+  border-color: #ffd57a;
+  background: #fff8e8;
+}
+
+.monitor-day-item strong {
+  font-family: var(--font-display);
+}
+
+.monitor-day-item span,
+.monitor-day-item small {
+  color: var(--on-surface-muted);
+}
+
+.monitor-empty-state {
+  padding: 28px;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--on-surface-muted);
+  text-align: center;
+}
+
+.monitor-grid-empty {
+  grid-column: 1 / -1;
+  margin: 18px;
+}
+
+.monitor-profile-stats {
+  margin-bottom: 24px;
+}
+
+.monitor-profile-card .card-body {
+  padding: 28px;
+}
+
+.monitor-profile-card .form-input,
+.monitor-profile-card .form-textarea,
+.monitor-profile-card .form-select {
+  background: #f8fbff;
+}
+
+.monitor-profile-card .form-input:focus,
+.monitor-profile-card .form-textarea:focus,
+.monitor-profile-card .form-select:focus {
+  background: #fff;
+}
+
+.planning-place-link {
+  color: var(--primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.planning-place-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+  .monitor-calendar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .monitor-shell {
+    height: auto;
+  }
+
+  .monitor-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .monitor-calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

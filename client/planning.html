@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CityDrive - Reservation</title>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="dashboardClient.css"/>
+<link rel="stylesheet" href="planning.css"/>
+</head>
+<body>
+<div class="client-shell">
+  <aside class="client-sidebar">
+    <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+
+
+    <nav class="client-nav">
+      <a class="client-nav-link" href="./dashboardClient.html">Historique</a>
+      <a class="client-nav-link" href="./Quizz.html">Quizz</a>
+      <a class="client-nav-link" href="./Lecons.html">Leçons</a>
+      <a class="client-nav-link active" href="./planning.html">Reservation</a>
+    </nav>
+
+   <!--  <div class="client-sidebar-box">
+      <p class="client-sidebar-kicker">Planning</p>
+      <h3 class="h4">Reserver une seance</h3>
+      <p class="text-muted">
+        Choisissez un jour dans le calendrier, puis un type de seance et un horaire disponible.
+      </p>
+    </div>
+    <--- -->
+
+    <div class="client-sidebar-footer">
+      <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+      <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="planning-logout-link">Deconnexion</a>
+    </div>
+  </aside>
+
+  <main class="client-main planning-main">
+    <header class="client-topbar">
+      <div>
+        <p class="client-kicker">Reservation</p>
+        <h1 class="h2">Réserver une seance</h1>
+        <p class="text-muted">Choisissez une date, un point de rencontre et retrouvez aussi quelques Leçons utiles avant votre seance.</p>
+      </div>
+    </header>
+
+    <section class="planning-shell">
+      <section class="card planning-calendar-card">
+        <div class="card-body">
+          <div class="planning-calendar-head">
+            <div>
+              <p class="client-kicker">Calendrier</p>
+              <h2 class="h3">Disponibilites du moniteur</h2>
+            </div>
+            <div class="planning-month-nav">
+              <button class="planning-icon-btn" type="button" id="prev-month-btn" aria-label="Mois precedent">&lsaquo;</button>
+              <div class="planning-month-label" id="month-label"></div>
+              <button class="planning-icon-btn" type="button" id="next-month-btn" aria-label="Mois suivant">&rsaquo;</button>
+            </div>
+          </div>
+
+          <div class="planning-weekdays" id="calendar-weekdays"></div>
+          <div class="planning-days" id="calendar-days"></div>
+        </div>
+      </section>
+
+      <div class="planning-side-stack">
+        <section class="card planning-monitor-card">
+          <div class="card-body">
+            <div class="planning-monitor-card-head">
+              <div>
+                <p class="client-kicker">Moniteur</p>
+                <h3 class="h4">Coordonnées du moniteur</h3>
+              </div>
+            </div>
+
+            <div class="planning-monitor-profile">
+              <div class="planning-monitor-photo">
+                <span id="monitor-photo-fallback">MD</span>
+              </div>
+
+              <div class="planning-monitor-fields">
+                <div class="form-group">
+                  <label class="form-label" for="monitor-fullname">Nom complet</label>
+                  <input class="form-input" id="monitor-fullname" type="text" readonly />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="monitor-phone">Téléphone</label>
+                  <input class="form-input" id="monitor-phone" type="text" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card planning-booking-card">
+          <div class="card-body">
+            <div class="planning-booking-head">
+              <div>
+                <p class="client-kicker">Selection</p>
+                <h2 class="h3">Choix du rendez-vous</h2>
+              </div>
+              <span class="badge badge-primary" id="availability-badge">Disponibilités à venir</span>
+            </div>
+
+            <div class="planning-selected-date">
+              <strong id="selected-date-label">Aucune date selectionnée</strong>
+              <p class="text-muted" id="selected-date-helper">Selectionnez un jour disponible dans le calendrier.</p>
+            </div>
+
+            <div class="planning-types" id="session-types"></div>
+            <div class="planning-slots" id="time-slots"></div>
+
+            <div class="planning-meeting-guide">
+              <div class="planning-guide-card">
+                <p class="client-kicker">Google Maps</p>
+                <h3 class="h4">Copiez votre lien Google Maps</h3>
+                <p class="planning-guide-text">
+                  Ouvrez Google Maps, choisissez le point de rendez-vous, copiez le lien puis collez-le dans le champ juste en dessous.
+                </p>
+                <div class="planning-guide-actions">
+                  <a class="btn btn-outline btn-sm" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">Ouvrir Google Maps</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="planning-meeting form-group">
+              <label class="form-label" for="meeting-address">Lien de rencontre</label>
+              <input class="form-input" id="meeting-address" type="text" placeholder="Collez ici votre lien Google Maps" />
+              <p class="form-hint">Le moniteur recevra ce lien pour ouvrir directement le point de rencontre.</p>
+            </div>
+
+            <div class="planning-notes form-group">
+              <label class="form-label" for="booking-note">Note pour le moniteur</label>
+              <textarea class="form-textarea" id="booking-note" placeholder="Ex: je veux travailler les manoeuvres ou la conduite en ville."></textarea>
+            </div>
+
+            <div class="planning-actions">
+              <button class="btn btn-primary btn-lg" type="button" id="book-btn">Confirmer la reservation</button>
+              <button class="btn btn-ghost btn-lg" type="button" id="reset-btn">Reinitialiser</button>
+            </div>
+
+            <div class="planning-cancel-note">
+              <strong>Important</strong>
+              <p>Vous ne pouvez annuler une seance deja reservée que 48 heures avant l'horaire prevu.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card planning-upcoming-card">
+          <div class="card-body">
+            <div class="planning-upcoming-head">
+              <div>
+                <p class="client-kicker">Mes reservations</p>
+                <h2 class="h3">Seances a venir</h2>
+              </div>
+              <span class="badge badge-accent" id="booking-count-badge">0 reservation</span>
+            </div>
+
+            <div class="planning-upcoming-list" id="upcoming-bookings"></div>
+          </div>
+        </section>
+
+        
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script src="planning.js"></script>
+
+</body>
+</html>

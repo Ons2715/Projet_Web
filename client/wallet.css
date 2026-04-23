@@ -1,0 +1,204 @@
+.rm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.rm-modal {
+  background: #fff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.22);
+}
+
+/* Header */
+.rm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.rm-header-left { display: flex; align-items: center; gap: 12px; }
+
+.rm-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.rm-header h2 { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
+.rm-header p  { font-size: 0.82rem; color: #64748b; margin: 0; }
+
+.rm-close {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #f1f5f9;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #64748b;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.rm-close:hover { background: #e2e8f0; }
+
+/* Progress */
+.rm-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.75rem;
+  gap: 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.rm-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.rm-progress-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.rm-progress-step.active .rm-progress-dot {
+  border-color: #b77900;
+  background: #b77900;
+  color: #fff;
+}
+
+.rm-progress-step.done .rm-progress-dot {
+  border-color: #059669;
+  background: #059669;
+  color: #fff;
+}
+
+.rm-progress-step span {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.rm-progress-step.active span { color: #b77900; }
+.rm-progress-step.done span   { color: #059669; }
+
+.rm-progress-line {
+  width: 40px;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 6px;
+  transition: background 0.2s;
+}
+.rm-progress-line.done { background: #059669; }
+
+/* Body */
+.rm-body {
+  padding: 1.5rem 1.75rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rm-subtitle { color: #475569; font-size: 0.9rem; margin: 0; }
+
+/* Méthodes */
+.rm-methods-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.rm-method-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.rm-method-card:hover {
+  border-color: var(--method-color, #b77900);
+  background: #f0f4ff;
+  transform: translateX(4px);
+}
+
+.rm-method-icon { font-size: 1.5rem; width: 36px; text-align: center; }
+
+.rm-method-info { flex: 1; }
+.rm-method-info strong { display: block; color: #0f172a; font-size: 0.95rem; font-weight: 700; }
+.rm-method-info small  { color: #64748b; font-size: 0.8rem; }
+
+.rm-method-arrow { color: #94a3b8; font-size: 1rem; }
+
+/* Montants rapides */
+.rm-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 8px;
+}
+
+.rm-quick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rm-quick-btn strong { color: #0f172a; font-size: 1rem; font-weight: 800; }
+.rm-quick-btn span   { color: #64748b; font-size: 0.72rem; font-weight: 600; }
+
+.rm-quick-btn:hover { border-color: #b77900; }
+
+.rm-quick-btn.active {
+  border-color: #b77900;
+  background: #b77900;
+}
+.rm-quick-btn.active strong,
+.rm-quick-btn.active span { color: #fff; }
+
+/* Divider */
+.rm-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+.rm-divider::before,
+.rm-divider::after { content: ""; flex: 1; height: 1px; background: #e2e8f0; }

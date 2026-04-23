@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CityDrive - Dashboard Client</title>
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="dashboardClient.css" />
+  </head>
+  <body>
+    <div class="client-shell">
+      <aside class="client-sidebar">
+        <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+        
+
+        <nav class="client-nav">
+          <a class="client-nav-link active" href="./dashboardClient.html">Historique</a>
+          <a class="client-nav-link" href="./Quizz.html">Quizz</a>
+          <a class="client-nav-link" href="./Leçons.html">Leçons</a>
+          <a class="client-nav-link" href="./planning.html">Reservation</a>
+        </nav>
+
+        <!--<div class="client-sidebar-box" id="reservation">
+          <p class="client-sidebar-kicker">Reservation</p>
+          <h3 class="h4">Reserver une seance</h3>
+          <p class="text-muted">
+            Choisissez votre prochaine heure de conduite ou de revision en ligne.
+          </p>
+          <a class="btn btn-primary" href="./planning.html">Reserver maintenant</a>
+        </div><-->
+
+        <div class="client-sidebar-footer">
+          <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+          <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="client-logout-link">Deconnexion</a>
+        </div>
+      </aside>
+
+      <main class="client-main">
+        <header class="client-topbar">
+          <div>
+            <p class="client-kicker">Dashboard Client</p>
+            <h1 class="h2">Bienvenue dans votre espace</h1>
+            <p class="text-muted">
+              Retrouvez vos derniers rendez-vous avec la date, l'emplacement et le type de seance.
+            </p>
+          </div>
+        </header>
+
+      
+
+        <section class="card">
+          <div class="card-body">
+            <div class="section-header">
+              <div>
+                <p class="client-kicker">Mes seances</p>
+                <h2 class="h3">Historique recent</h2>
+              </div>
+              <span class="badge badge-primary">Client</span>
+            </div>
+
+            <div class="history-list">
+              <article class="history-item">
+                <div class="history-date">
+                  <span>22</span>
+                  <small>Avr 2026</small>
+                </div>
+                <div class="history-content">
+                  <h3>Conduite urbaine</h3>
+                  <p>Emplacement : Centre Ville, Tunis</p>
+                </div>
+                <span class="badge badge-success">Terminee</span>
+              </article>
+
+              <article class="history-item">
+                <div class="history-date">
+                  <span>18</span>
+                  <small>Avr 2026</small>
+                </div>
+                <div class="history-content">
+                  <h3>Stationnement et manoeuvre</h3>
+                  <p>Emplacement : Parking du Lac, Tunis</p>
+                </div>
+                <span class="badge badge-warning">Evaluation</span>
+              </article>
+
+              <article class="history-item">
+                <div class="history-date">
+                  <span>14</span>
+                  <small>Avr 2026</small>
+                </div>
+                <div class="history-content">
+                  <h3>Revision code de la route</h3>
+                  <p>Emplacement : Salle Code CityDrive, Ariana</p>
+                </div>
+                <span class="badge badge-muted">Theorie</span>
+              </article>
+
+              <article class="history-item">
+                <div class="history-date">
+                  <span>09</span>
+                  <small>Avr 2026</small>
+                </div>
+                <div class="history-content">
+                  <h3>Conduite sur route rapide</h3>
+                  <p>Emplacement : Route GP9, La Goulette</p>
+                </div>
+                <span class="badge badge-success">Terminee</span>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="shared.js"></script>
+    <script>
+      const user = Auth.get();
+      if (user && (user.firstName || user.lastName)) {
+        document.getElementById("client-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+      }
+      if (user && user.formation) {
+        document.getElementById("client-formation-badge").textContent = user.formation;
+      }
+
+      document.getElementById("client-logout-link").addEventListener("click", function () {
+        Auth.clear();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CityDrive - Leçons</title>
+<link rel="stylesheet" href="shared.css"/>
+<link rel="stylesheet" href="dashboardClient.css"/>
+<link rel="stylesheet" href="Lecons.css"/>
+</head>
+<body>
+<div class="client-shell">
+  <aside class="client-sidebar">
+    <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+
+
+    <nav class="client-nav">
+      <a class="client-nav-link" href="./dashboardClient.html">Historique</a>
+      <a class="client-nav-link" href="./Quizz.html">Quizz</a>
+      <a class="client-nav-link active" href="./Leçons.html">Leçons</a>
+      <a class="client-nav-link" href="./planning.html">Reservation</a>
+    </nav>
+
+   <!-- <div class="client-sidebar-box">
+      <p class="client-sidebar-kicker">Leçons</p>
+      <h3 class="h4">Parcours du cours</h3>
+      <p class="text-muted">
+        Selectionnez une Leçon a gauche et le contenu s'affiche a droite.
+      </p>
+    </div>
+    <-->
+
+
+    <div class="client-sidebar-footer">
+      <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+      <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="Leçons-logout-link">Deconnexion</a>
+    </div>
+  </aside>
+
+  <main class="client-main Leçons-main">
+    <header class="client-topbar">
+      <div>
+        <p class="client-kicker">Leçons</p>
+        <h1 class="h2">Apercu du cours</h1>
+        <p class="text-muted">Les Leçons sont affichees verticalement a gauche, avec le contenu detaille a droite.</p>
+      </div>
+    </header>
+
+    <section class="Leçons-layout">
+      <section class="card Leçons-sidebar-panel">
+        <div class="Leçons-panel-header">
+          <button class="Leçons-panel-tab active" type="button">Apercu du cours</button>
+        </div>
+        <div class="card-body">
+          <div class="Leçons-search">
+            <input id="Leçon-search" type="text" placeholder="Rechercher un plan de cours" />
+          </div>
+          <div class="Leçons-vertical-list" id="Leçons-list"></div>
+        </div>
+      </section>
+
+      <section class="card Leçons-content-panel">
+        <div class="Leçon-hero" id="Leçon-hero">
+          <div class="Leçon-hero-overlay">
+            <p class="Leçon-step" id="Leçon-step"></p>
+            <h2 id="Leçon-title">Leçon 1</h2>
+            <p id="Leçon-summary">Selectionnez une Leçon a gauche pour voir son contenu.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="Leçon-meta">
+            <span class="badge badge-primary" id="Leçon-category">Croisement</span>
+            <span class="badge badge-muted" id="Leçon-progress">0 / 3</span>
+          </div>
+          <div class="Leçon-content-text" id="Leçon-text"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<script src="shared.js"></script>
+<script src="lecons.js"></script>
+
+</body>
+</html>

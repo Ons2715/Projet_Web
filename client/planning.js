@@ -1,0 +1,382 @@
+const BOOKINGS_KEY = "citydrive_client_bookings";
+const MONITOR_PROFILE_KEY = "citydrive_monitor_profile";
+const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const SESSION_TYPES = [
+  {
+    id: "1h",
+    label: "1 heure",
+    duration: "1h",
+    place: "Agence CityDrive, Centre Urbain Nord, Tunis",
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
+  },
+  {
+    id: "2h",
+    label: "2 heures",
+    duration: "2h",
+    place: "Agence CityDrive, Centre Urbain Nord, Tunis",
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
+  }
+];
+const DEFAULT_MONITOR_PROFILE = {
+  firstName: "Mourad",
+  lastName: "Ben Salah",
+  phone: "+216 20 000 000"
+};
+const PLANNING_LeçonS = [
+  {
+    id: "Leçon1",
+    name: "Croisement",
+    step: "1.0 Introduction",
+    summary: "Qui passe en premier, comment ralentir et bien se positionner."
+  },
+  {
+    id: "Leçon2",
+    name: "Vitesse",
+    step: "2.0 Introduction",
+    summary: "Distance de reaction, distance d'arret et gestion de la vitesse."
+  },
+  {
+    id: "Leçon4",
+    name: "Priorites",
+    step: "4.0 Introduction",
+    summary: "Priorite a droite, ceders le passage et reflexes essentiels."
+  }
+];
+
+let monthCursor = new Date();
+monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
+let selectedDateKey = "";
+let selectedTypeId = SESSION_TYPES[0].id;
+let selectedSlot = "";
+
+function normalizeDate(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function formatDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatLongDate(date) {
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function getStoredBookings() {
+  try {
+    return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredBookings(bookings) {
+  localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+}
+
+function getMonitorProfile() {
+  try {
+    const storedProfile = JSON.parse(localStorage.getItem(MONITOR_PROFILE_KEY) || "null");
+    if (storedProfile && typeof storedProfile === "object") {
+      return {
+        firstName: storedProfile.firstName || DEFAULT_MONITOR_PROFILE.firstName,
+        lastName: storedProfile.lastName || DEFAULT_MONITOR_PROFILE.lastName,
+        phone: storedProfile.phone || DEFAULT_MONITOR_PROFILE.phone
+      };
+    }
+  } catch {}
+
+  return DEFAULT_MONITOR_PROFILE;
+}
+
+function getInitials(firstName, lastName) {
+  const initials = `${(firstName || "").charAt(0)}${(lastName || "").charAt(0)}`.toUpperCase();
+  return initials || "MD";
+}
+
+function renderMonitorProfile() {
+  const monitorProfile = getMonitorProfile();
+  document.getElementById("monitor-fullname").value = `${monitorProfile.firstName} ${monitorProfile.lastName}`.trim();
+  document.getElementById("monitor-phone").value = monitorProfile.phone;
+  document.getElementById("monitor-photo-fallback").textContent = getInitials(monitorProfile.firstName, monitorProfile.lastName);
+}
+
+function renderPlanningLeçons() {
+  document.getElementById("planning-Leçons-list").innerHTML = PLANNING_LeçonS.map((Leçon, index) => `
+    <article class="planning-Leçon-item">
+      <span class="planning-Leçon-rank">0${index + 1}</span>
+      <div class="planning-Leçon-content">
+        <p class="planning-Leçon-step">${Leçon.step}</p>
+        <h3>${Leçon.name}</h3>
+        <p>${Leçon.summary}</p>
+        <a class="planning-Leçon-link" href="./Lecons.html">Ouvrir la Leçon</a>
+      </div>
+    </article>
+  `).join("");
+}
+
+function getDaySlots(date) {
+  const hours = [];
+  for (let hour = 7; hour <= 18; hour++) {
+    if (hour === 12) continue;
+    hours.push(`${String(hour).padStart(2, "0")}:00`);
+  }
+  return hours;
+}
+
+function renderWeekDays() {
+  document.getElementById("calendar-weekdays").innerHTML = WEEK_DAYS.map((day) => `
+    <div class="planning-weekday">${day}</div>
+  `).join("");
+}
+
+function renderCalendar() {
+  const year = monthCursor.getFullYear();
+  const month = monthCursor.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const firstIndex = (firstDay.getDay() + 6) % 7;
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const today = normalizeDate(new Date());
+  const monthLabel = firstDay.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  document.getElementById("month-label").textContent = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+  const cells = [];
+  for (let i = 0; i < firstIndex; i++) {
+    cells.push(`<button class="planning-day is-empty" type="button" aria-hidden="true"></button>`);
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const currentDate = new Date(year, month, day);
+    const currentKey = formatDateKey(currentDate);
+    const isPast = normalizeDate(currentDate) < today;
+    const isToday = formatDateKey(today) === currentKey;
+    const isSelected = selectedDateKey === currentKey;
+
+    cells.push(`
+      <button
+        class="planning-day ${isPast ? "is-past" : ""} ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""}"
+        type="button"
+        onclick="selectDate('${currentKey}')"
+        ${isPast ? "disabled" : ""}
+      >
+        <span class="planning-day-number">${day}</span>
+      </button>
+    `);
+  }
+
+  document.getElementById("calendar-days").innerHTML = cells.join("");
+}
+
+function renderSessionTypes() {
+  document.getElementById("session-types").innerHTML = SESSION_TYPES.map((type) => `
+    <div class="planning-type-card">
+      <button class="planning-type ${selectedTypeId === type.id ? "active" : ""}" type="button" onclick="selectSessionType('${type.id}')">
+        <span class="planning-type-label">${type.label}</span>
+        <span class="planning-type-meta">${type.duration}</span>
+      </button>
+    </div>
+  `).join("");
+}
+
+function renderSlots() {
+  const container = document.getElementById("time-slots");
+  if (!selectedDateKey) {
+   // container.innerHTML = `<div class="planning-empty">Choisissez d'abord une date pour voir les heures disponibles.</div>`;
+    return;
+  }
+
+  const date = new Date(`${selectedDateKey}T12:00:00`);
+  const slots = getDaySlots(date);
+  if (!slots.length) {
+    container.innerHTML = `<div class="planning-empty">Aucun creneau disponible pour cette date.</div>`;
+    return;
+  }
+
+  container.innerHTML = slots.map((slot) => `
+    <button class="planning-slot ${selectedSlot === slot ? "active" : ""}" type="button" onclick="selectSlot('${slot}')">
+      <span class="planning-slot-time">${slot}</span>
+      <span class="planning-slot-meta">Duree ${SESSION_TYPES.find((item) => item.id === selectedTypeId).duration}</span>
+    </button>
+  `).join("");
+}
+
+function renderSelectedDateSummary() {
+  const title = document.getElementById("selected-date-label");
+  const helper = document.getElementById("selected-date-helper");
+  if (!selectedDateKey) {
+    title.textContent = "Aucune date selectionnee";
+    helper.textContent = "Selectionnez un jour disponible dans le calendrier.";
+    return;
+  }
+
+  const date = new Date(`${selectedDateKey}T12:00:00`);
+  title.textContent = formatLongDate(date);
+  //helper.innerHTML = `${SESSION_TYPES.find((item) => item.id === selectedTypeId).label} selectionnee. Choisissez maintenant une heure.<br><a class="planning-place-link" href="${SESSION_TYPES.find((item) => item.id === selectedTypeId).mapsUrl}" target="_blank" rel="noopener noreferrer">Voir le lieu de rencontre sur Google Maps</a>`;
+}
+
+function renderUpcomingBookings() {
+  const bookings = getStoredBookings()
+    .sort((a, b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
+  const container = document.getElementById("upcoming-bookings");
+  const badge = document.getElementById("booking-count-badge");
+  badge.textContent = `${bookings.length} reservation${bookings.length > 1 ? "s" : ""}`;
+
+  if (!bookings.length) {
+    container.innerHTML = `<div class="planning-empty">Aucune reservation pour le moment. Choisissez une date et un horaire.</div>`;
+    return;
+  }
+
+  container.innerHTML = bookings.map((booking, index) => {
+    const date = new Date(`${booking.date}T12:00:00`);
+    return `
+      <article class="planning-upcoming-item">
+        <div class="planning-upcoming-date">
+          <span>${String(date.getDate()).padStart(2, "0")}</span>
+          <small>${date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" })}</small>
+        </div>
+        <div>
+          <div class="planning-upcoming-title">${booking.typeLabel}</div>
+          <div class="planning-upcoming-meta">${booking.time} - ${booking.duration}</div>
+          <div class="planning-upcoming-meta"><a class="planning-place-link" href="${booking.mapsUrl}" target="_blank" rel="noopener noreferrer">${booking.place}</a></div>
+          <div class="planning-upcoming-meta">${booking.note || "Sans note particuliere"}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking(${index})">Annuler</button>
+      </article>
+    `;
+  }).join("");
+}
+
+function selectDate(dateKey) {
+  selectedDateKey = dateKey;
+  selectedSlot = "";
+  renderCalendar();
+  renderSelectedDateSummary();
+  renderSlots();
+}
+
+function selectSessionType(typeId) {
+  selectedTypeId = typeId;
+  selectedSlot = "";
+  const selectedType = SESSION_TYPES.find((item) => item.id === typeId);
+  if (selectedType && !document.getElementById("meeting-address").value.trim()) {
+    document.getElementById("meeting-address").value = selectedType.place;
+  }
+  renderSessionTypes();
+  renderSelectedDateSummary();
+  renderSlots();
+}
+
+function selectSlot(slot) {
+  selectedSlot = slot;
+  renderSlots();
+}
+
+function resetBookingSelection() {
+  selectedDateKey = "";
+  selectedTypeId = SESSION_TYPES[0].id;
+  selectedSlot = "";
+  document.getElementById("meeting-address").value = SESSION_TYPES[0].place;
+  document.getElementById("booking-note").value = "";
+  renderCalendar();
+  renderSessionTypes();
+  renderSelectedDateSummary();
+  renderSlots();
+}
+
+function confirmBooking() {
+  if (!selectedDateKey) {
+    Toast.error("Selectionnez d'abord une date.");
+    return;
+  }
+  if (!selectedSlot) {
+    Toast.error("Choisissez un horaire disponible.");
+    return;
+  }
+
+  const selectedType = SESSION_TYPES.find((item) => item.id === selectedTypeId);
+  const meetingAddress = document.getElementById("meeting-address").value.trim();
+  const note = document.getElementById("booking-note").value.trim();
+  const bookings = getStoredBookings();
+
+  if (!meetingAddress) {
+    Toast.error("Ajoutez un lieu de rencontre.");
+    return;
+  }
+
+  const alreadyTaken = bookings.some((booking) =>
+    booking.date === selectedDateKey &&
+    booking.time === selectedSlot &&
+    booking.typeId === selectedTypeId
+  );
+
+  if (alreadyTaken) {
+    Toast.error("Ce creneau est deja reserve dans cette demo.");
+    return;
+  }
+
+  bookings.push({
+    studentId: planningUser?.id || `student_${Date.now()}`,
+    studentFirstName: planningUser?.firstName || "Jean",
+    studentLastName: planningUser?.lastName || "Dupont",
+    studentPhone: planningUser?.phone || "Non renseigne",
+    studentEmail: planningUser?.email || "",
+    date: selectedDateKey,
+    time: selectedSlot,
+    typeId: selectedType.id,
+    typeLabel: selectedType.label,
+    duration: selectedType.duration,
+    place: meetingAddress,
+    mapsUrl: meetingAddress.startsWith("http")
+      ? meetingAddress
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(meetingAddress)}`,
+    note
+  });
+  saveStoredBookings(bookings);
+  renderUpcomingBookings();
+  Toast.success(`Reservation confirmee pour le ${new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString("fr-FR")} a ${selectedSlot}.`);
+  resetBookingSelection();
+}
+
+function cancelBooking(index) {
+  const bookings = getStoredBookings();
+  bookings.splice(index, 1);
+  saveStoredBookings(bookings);
+  renderUpcomingBookings();
+  Toast.success("Reservation annulee.");
+}
+
+document.getElementById("prev-month-btn").addEventListener("click", function () {
+  monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1);
+  renderCalendar();
+});
+
+document.getElementById("next-month-btn").addEventListener("click", function () {
+  monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1);
+  renderCalendar();
+});
+
+document.getElementById("book-btn").addEventListener("click", confirmBooking);
+document.getElementById("reset-btn").addEventListener("click", resetBookingSelection);
+
+const planningUser = Auth.get();
+
+document.getElementById("planning-logout-link").addEventListener("click", function () {
+  Auth.clear();
+});
+
+renderWeekDays();
+renderCalendar();
+renderSessionTypes();
+renderMonitorProfile();
+renderPlanningLeçons();
+document.getElementById("meeting-address").value = SESSION_TYPES[0].place;
+renderSelectedDateSummary();
+renderSlots();
+renderUpcomingBookings();
