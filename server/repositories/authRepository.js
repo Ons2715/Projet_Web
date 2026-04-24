@@ -7,7 +7,6 @@ export async function findUserByEmail(email) {
      WHERE email = ?`,
     [email]
   );
-
   return rows[0] || null;
 }
 
@@ -25,16 +24,16 @@ export async function createUser({ nom, email, motDePasse, role, telephone, adre
 
     if (role === "eleve") {
       await connection.query(
-        `INSERT INTO eleves (id, type_formation, date_inscription)
-         VALUES (?, ?, CURDATE())`,
-        [result.insertId, "Permis B"]
+        `INSERT INTO eleves (id, id_formation, date_inscription)
+         VALUES (?, NULL, CURDATE())`,
+        [result.insertId]
       );
     }
 
     if (role === "moniteur") {
       await connection.query(
-        `INSERT INTO moniteurs (id, voiture)
-         VALUES (?, ?)`,
+        `INSERT INTO moniteurs (id, id_formation, voiture)
+         VALUES (?, NULL, ?)`,
         [result.insertId, "Kia Picanto"]
       );
     }
