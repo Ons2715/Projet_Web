@@ -9,5 +9,6 @@ export const env = {
   dbPort: Number(process.env.DB_PORT || 3306),
   dbUser: process.env.DB_USER || "root",
   dbPassword: process.env.DB_PASSWORD || "",
-  dbName: process.env.DB_NAME || "auto_ecole"
+  dbName: process.env.DB_NAME || "auto_ecole",
+  jwtSecret: process.env.JWT_SECRET || "citydrive_dev_secret_change_me"
 };

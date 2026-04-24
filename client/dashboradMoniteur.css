@@ -68,15 +68,15 @@ body {
 
 .exam-grid-header {
   display: grid;
-  grid-template-columns: repeat(7, minmax(90px, 1fr));
+  grid-template-columns: 52px repeat(7, minmax(104px, 1fr));
   gap: 0;
-  padding-bottom: 16px;
+  padding-bottom: 0;
   border-bottom: 1px solid var(--border-light);
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .exam-grid-header button {
-  min-width: 90px;
+  min-width: 104px;
   border: 0;
   background: transparent;
   color: #8a96ac;
@@ -87,38 +87,126 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
+  padding: 16px 8px;
+  border-left: 1px solid #edf2fb;
 }
 
 .exam-grid-header .active-day {
   color: var(--primary-dark);
 }
 
+.exam-grid-header button.is-today {
+  position: relative;
+  color: #111f33;
+  background: #fff5cf;
+  overflow: hidden;
+}
+
+.exam-grid-header button.is-today::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 177, 0, 0.42) 48%, transparent 100%);
+  transform: translateX(-120%);
+  animation: todayMarquee 2.8s linear infinite;
+}
+
+.monitor-header-spacer {
+  min-width: 52px;
+}
+
 .exam-grid-body {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(7, minmax(90px, 1fr));
-  grid-template-rows: repeat(10, 46px);
-  min-height: 460px;
-  overflow-x: auto;
-  background-image:
-    linear-gradient(to right, #edf2fb 1px, transparent 1px),
-    linear-gradient(to bottom, #f4f7fc 1px, transparent 1px);
-  background-size: calc(100% / 7) 100%, 100% 46px;
+  grid-template-columns: 52px repeat(7, minmax(104px, 1fr));
+  grid-template-rows: none;
+  min-height: calc(var(--monitor-hour-count, 12) * var(--monitor-hour-row, 72px));
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.monitor-day-column {
+  position: relative;
+  min-height: calc(var(--monitor-hour-count, 12) * var(--monitor-hour-row, 72px));
+  border-left: 1px solid #edf2fb;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.monitor-day-column:nth-of-type(7) {
+  border-right: 1px solid #edf2fb;
+}
+
+.monitor-day-column.is-today {
+  background: rgba(255, 177, 0, 0.08);
+}
+
+.monitor-day-column.is-today::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 177, 0, 0.24) 50%, transparent 100%);
+  transform: translateX(-120%);
+  animation: todayMarquee 3.4s linear infinite;
+}
+
+.monitor-time-label {
+  position: absolute;
+  left: 0;
+  width: 44px;
+  transform: translateY(4px);
+  z-index: 2;
+  color: #93a0b6;
+  background: #ffffff;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.monitor-hour-line {
+  position: absolute;
+  left: 52px;
+  right: 0;
+  height: 1px;
+  background: #f1f4fa;
+}
+
+.monitor-now-line {
+  position: absolute;
+  left: 52px;
+  right: 0;
+  z-index: 3;
+  height: 2px;
+  background: #f5a400;
+  box-shadow: 0 0 0 1px rgba(245, 164, 0, 0.12);
+}
+
+.monitor-now-line::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #f5a400;
 }
 
 .exam-card {
-  position: relative;
+  position: absolute;
   z-index: 2;
-  margin: 6px;
-  border: 1px solid #ffd57a;
-  border-left: 4px solid var(--primary);
-  border-radius: 16px;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, #fff8e8 0%, #ffffff 100%);
+  width: calc(100% - 12px);
+  margin: 0 6px;
+  border: 1px solid #dcebba;
+  border-left: 4px solid #7cb305;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #effbd9;
   text-align: left;
-  box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: var(--transition);
+  overflow: visible;
 }
 
 .exam-card:hover,
@@ -141,7 +229,42 @@ body {
 .exam-time {
   font-family: var(--font-display);
   font-weight: 700;
+  color: #315400;
+  font-size: 12px;
+}
+
+.exam-location-link {
+  display: block;
+  max-height: 34px;
+  overflow: hidden;
+  color: #315400;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.exam-location-link:hover {
+  text-decoration: underline;
+}
+
+.exam-candidate-name {
+  display: block;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #526078;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.exam-candidate-name:hover {
   color: var(--primary-dark);
+  text-decoration: underline;
 }
 
 .monitor-details-card,
@@ -269,6 +392,87 @@ body {
 
 .planning-place-link:hover {
   text-decoration: underline;
+}
+
+.candidate-popover {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 20;
+  width: min(340px, calc(100vw - 32px));
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  box-shadow: var(--shadow-lg);
+  padding: 18px;
+}
+
+.candidate-popover-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.candidate-popover-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.candidate-popover-head button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: #f8fbff;
+  color: var(--on-surface-muted);
+  cursor: pointer;
+}
+
+.candidate-contact-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.candidate-contact-list div {
+  display: grid;
+  gap: 2px;
+}
+
+.candidate-contact-list dt {
+  color: var(--on-surface-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.candidate-contact-list dd {
+  margin: 0;
+  color: var(--on-surface);
+  overflow-wrap: anywhere;
+}
+
+.candidate-contact-list a {
+  color: var(--primary-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.candidate-contact-list a:hover {
+  text-decoration: underline;
+}
+
+@keyframes todayMarquee {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(120%);
+  }
 }
 
 @media (max-width: 1100px) {

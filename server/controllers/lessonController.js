@@ -1,4 +1,4 @@
-import { getLessons } from "../src/services/lessonService.js";
+import { getLessons } from "../services/lessonService.js";
 
 export async function listAllLessons(req, res) {
   const lessons = await getLessons();

@@ -253,6 +253,114 @@
           transform: rotate(360deg);
         }
       }
+      .auth-inline-error {
+        display: none;
+        padding: 11px 13px;
+        border: 1px solid #f8b4b4;
+        border-radius: var(--radius);
+        background: #fff5f5;
+        color: #b42318;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .auth-inline-error.show {
+        display: block;
+      }
+      .photo-step {
+        display: none;
+        width: 100%;
+        max-width: 460px;
+        padding: 30px;
+        border: 1px solid #ffe19a;
+        border-radius: var(--radius-xl);
+        background: #ffffff;
+        box-shadow: var(--shadow-lg);
+      }
+      .photo-step.active {
+        display: block;
+      }
+      .photo-step-kicker {
+        color: #e09800;
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .photo-step h2 {
+        font-family: var(--font-display);
+        font-size: 26px;
+        margin-bottom: 8px;
+      }
+      .photo-step p {
+        color: var(--on-surface-muted);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+      .photo-upload-box {
+        display: grid;
+        gap: 14px;
+        place-items: center;
+        min-height: 220px;
+        padding: 24px;
+        border: 2px dashed #ffc94d;
+        border-radius: var(--radius-lg);
+        background: #fffaf0;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+      .photo-upload-box:hover {
+        border-color: #e09800;
+        background: #fff6dc;
+      }
+      .photo-preview {
+        display: none;
+        width: 112px;
+        height: 112px;
+        border: 4px solid #ffdf7e;
+        border-radius: 999px;
+        background: #ffffff;
+        object-fit: cover;
+      }
+      .photo-upload-box.has-photo .photo-preview {
+        display: block;
+      }
+      .photo-upload-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: #ffdf7e;
+        color: #0b1c30;
+        font-size: 30px;
+        font-weight: 900;
+      }
+      .photo-upload-box.has-photo .photo-upload-icon {
+        display: none;
+      }
+      .photo-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .photo-actions .btn {
+        flex: 1;
+        justify-content: center;
+      }
+      .photo-error {
+        display: none;
+        margin-top: 12px;
+        color: #b42318;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .photo-error.show {
+        display: block;
+      }
     </style>
   </head>
   <body>
@@ -319,6 +427,7 @@
                   id="login-email"
                   placeholder="vous@example.com"
                   autocomplete="email"
+                  required
                 />
               </div>
               <div class="form-group">
@@ -330,6 +439,7 @@
                     id="login-password"
                     placeholder="••••••••"
                     autocomplete="current-password"
+                    required
                   />
                   <button
                     class="password-toggle"
@@ -362,6 +472,7 @@
                   >Mot de passe oublié ?</a
                 >
               </div>
+              <div class="auth-inline-error" id="login-inline-error"></div>
               <button
                 class="btn btn-primary"
                 style="width: 100%; justify-content: center"
@@ -390,6 +501,7 @@
                     type="text"
                     id="reg-firstname"
                     placeholder="foulen"
+                    required
                   />
                 </div>
                 <div class="form-group">
@@ -399,6 +511,7 @@
                     type="text"
                     id="reg-lastname"
                     placeholder="ben foulen"
+                    required
                   />
                 </div>
               </div>
@@ -409,6 +522,7 @@
                   type="email"
                   id="reg-email"
                   placeholder="vous@example.com"
+                  required
                 />
               </div>
               <div class="form-group">
@@ -418,6 +532,17 @@
                   type="tel"
                   id="reg-phone"
                   placeholder="+216 00 00 00 00"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Adresse</label>
+                <input
+                  class="form-input"
+                  type="text"
+                  id="reg-address"
+                  placeholder="Rue, ville, gouvernorat"
+                  required
                 />
               </div>
 
@@ -428,6 +553,7 @@
                     class="form-input"
                     type="password"
                     id="reg-password"
+                    required
                     placeholder="8 caractères minimum"
                   />
                   <button
@@ -453,12 +579,13 @@
                 </div>
               </div>
               <label class="form-check">
-                <input type="checkbox" id="reg-terms" />
+                <input type="checkbox" id="reg-terms" required />
                 J'accepte les
                 <a href="#" style="color: var(--primary)"
                   >conditions générales</a
                 >
               </label>
+              <div class="auth-inline-error" id="register-inline-error"></div>
               <button
                 class="btn btn-primary"
                 style="width: 100%; justify-content: center"
@@ -473,14 +600,70 @@
               <a href="#" onclick="switchTab('login')">Se connecter</a>
             </div>
           </div>
+          <div class="photo-step" id="photo-step">
+            <p class="photo-step-kicker">Profil candidat</p>
+            <h2>Ajoutez votre photo</h2>
+            <p>Cette photo est obligatoire pour finaliser votre inscription et passer au paiement.</p>
+            <label class="photo-upload-box" id="photo-upload-box" for="profile-photo">
+              <img class="photo-preview" id="photo-preview" alt="Apercu de la photo" />
+              <span class="photo-upload-icon">+</span>
+              <strong id="photo-upload-title">Choisir une photo</strong>
+              <span class="text-muted">Formats acceptes : JPG, PNG ou WebP</span>
+            </label>
+            <input id="profile-photo" type="file" accept="image/*" required hidden />
+            <div class="photo-error" id="photo-error">Veuillez ajouter une photo avant de continuer.</div>
+            <div class="photo-actions">
+              <button class="btn btn-outline" type="button" onclick="backToRegister()">Retour</button>
+              <button class="btn btn-primary" type="button" id="photo-continue-btn" onclick="confirmPhotoAndPay()">Choisir une formation</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <script src="shared.js"></script>
     <script>
+      let pendingRegisteredUser = null;
+      let selectedProfilePhoto = "";
+
+      function setLoginError(message = "") {
+        const errorBox = document.getElementById("login-inline-error");
+        if (!errorBox) return;
+        errorBox.textContent = message;
+        errorBox.classList.toggle("show", Boolean(message));
+      }
+
+      function setRegisterError(message = "") {
+        const errorBox = document.getElementById("register-inline-error");
+        if (!errorBox) return;
+        errorBox.textContent = message;
+        errorBox.classList.toggle("show", Boolean(message));
+      }
+
+      function setPhotoError(message = "") {
+        const errorBox = document.getElementById("photo-error");
+        if (!errorBox) return;
+        errorBox.textContent = message;
+        errorBox.classList.toggle("show", Boolean(message));
+      }
+
+      function showAuthPanels() {
+        document.querySelector(".auth-tabs").style.display = "";
+        document.getElementById("photo-step").classList.remove("active");
+      }
+
+      function showPhotoStep() {
+        document.querySelector(".auth-tabs").style.display = "none";
+        document.getElementById("panel-login").classList.remove("active");
+        document.getElementById("panel-register").classList.remove("active");
+        document.getElementById("photo-step").classList.add("active");
+      }
+
       // Switch between login / register tabs
       function switchTab(tab) {
+        showAuthPanels();
+        setLoginError("");
+        setRegisterError("");
         ["login", "register"].forEach((t) => {
           document
             .getElementById(`tab-${t}`)
@@ -496,8 +679,54 @@
       // Check URL hash on load
       if (location.hash === "#register") switchTab("register");
 
+      document.getElementById("profile-photo").addEventListener("change", function () {
+        const file = this.files && this.files[0];
+        if (!file) {
+          selectedProfilePhoto = "";
+          document.getElementById("photo-upload-box").classList.remove("has-photo");
+          return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+          selectedProfilePhoto = "";
+          this.value = "";
+          setPhotoError("Veuillez choisir une image valide.");
+          document.getElementById("photo-upload-box").classList.remove("has-photo");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function () {
+          selectedProfilePhoto = String(reader.result || "");
+          document.getElementById("photo-preview").src = selectedProfilePhoto;
+          document.getElementById("photo-upload-box").classList.add("has-photo");
+          document.getElementById("photo-upload-title").textContent = "Photo selectionnee";
+          setPhotoError("");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function backToRegister() {
+        showAuthPanels();
+        switchTab("register");
+      }
+
+      function confirmPhotoAndPay() {
+        if (!selectedProfilePhoto) {
+          setPhotoError("Veuillez ajouter une photo avant de continuer.");
+          return;
+        }
+
+        const user = pendingRegisteredUser || Auth.get() || {};
+        user.photo = selectedProfilePhoto;
+        user.avatar = selectedProfilePhoto;
+        Auth.set(user);
+        Toast.success("Photo ajoutee avec succes.");
+        location.href = "chooseFormation.html";
+      }
+
       function getDashboardByRole(user) {
-        return user && (user.role === "admin" || user.role === "monitor")
+        return user && (user.role === "admin" || user.role === "monitor" || user.role === "moniteur")
           ? "dashboradMoniteur.html"
           : "dashboardClient.html";
       }
@@ -539,11 +768,12 @@
       async function handleLogin() {
         const btn = document.getElementById("login-btn");
         const txt = document.getElementById("login-btn-text");
+        setLoginError("");
         const email = document.getElementById("login-email").value.trim();
         const password = document.getElementById("login-password").value;
 
         if (!email || !password) {
-          Toast.error("Veuillez remplir tous les champs.");
+          setLoginError("Veuillez remplir tous les champs.");
           return;
         }
 
@@ -551,30 +781,14 @@
         btn.disabled = true;
 
         try {
-          // DEMO mode — swap for real API call:
-          // const data = await api.post('/auth/login', { email, password });
-          await sleep(900);
-          const role = email.includes("admin") || email.includes("moniteur")
-            ? "monitor"
-            : "student";
-          const mockUser = {
-            id: "u_001",
-            firstName: "Jean",
-            lastName: "Dupont",
-            email,
-            role,
-            formation: "Permis B",
-            progress: 42,
-            hours: 8,
-            totalHours: 20,
-          };
-          Auth.set(mockUser);
-          Auth.setToken("mock_token_xyz");
-          Toast.success(`Bienvenue, ${mockUser.firstName} !`);
+          const data = await Api.post("/auth/login", { email, password });
+          Auth.set(data.user);
+          Auth.setToken(data.token);
+          Toast.success(`Bienvenue, ${data.user.firstName || data.user.name || "CityDrive"} !`);
           await sleep(700);
-          location.href = getDashboardByRole(mockUser);
+          location.href = getDashboardByRole(data.user);
         } catch (err) {
-          Toast.error(err.message || "Identifiants incorrects.");
+          setLoginError(err.message || "Email ou mot de passe incorrect.");
           txt.textContent = "Se connecter";
           btn.disabled = false;
         }
@@ -584,24 +798,30 @@
         async function handleRegister() {
           const btn = document.getElementById("reg-btn");
           const txt = document.getElementById("reg-btn-text");
+          setRegisterError("");
           const fields = {
             firstName: document.getElementById("reg-firstname").value.trim(),
             lastName: document.getElementById("reg-lastname").value.trim(),
             email: document.getElementById("reg-email").value.trim(),
             phone: document.getElementById("reg-phone").value.trim(),
+            address: document.getElementById("reg-address").value.trim(),
             password: document.getElementById("reg-password").value,
           };
 
         if (Object.values(fields).some((v) => !v)) {
-          Toast.error("Veuillez remplir tous les champs.");
+          setRegisterError("Veuillez remplir tous les champs.");
+          return;
+        }
+        if (!document.getElementById("reg-email").checkValidity()) {
+          setRegisterError("Veuillez saisir une adresse email valide.");
           return;
         }
         if (!document.getElementById("reg-terms").checked) {
-          Toast.error("Veuillez accepter les conditions générales.");
+          setRegisterError("Veuillez accepter les conditions generales.");
           return;
         }
         if (fields.password.length < 8) {
-          Toast.error("Le mot de passe doit faire au moins 8 caractères.");
+          setRegisterError("Le mot de passe doit faire au moins 8 caracteres.");
           return;
         }
 
@@ -609,24 +829,24 @@
         btn.disabled = true;
 
         try {
-          // DEMO — swap for:
-          // const data = await api.post('/auth/register', fields);
-          await sleep(1200);
-          const mockUser = {
-            ...fields,
-            id: "u_new",
-            role: "student",
-            progress: 0,
-            hours: 0,
-            totalHours: 20,
-          };
-          Auth.set(mockUser);
-          Auth.setToken("mock_token_new");
+          const data = await Api.post("/auth/register", {
+            firstName: fields.firstName,
+            lastName: fields.lastName,
+            email: fields.email,
+            telephone: fields.phone,
+            adresse: fields.address,
+            password: fields.password,
+            role: "eleve"
+          });
+          Auth.set(data.user);
+          Auth.setToken(data.token);
           Toast.success("Compte créé avec succès !");
-          await sleep(700);
-          location.href = "chooseFormation.html";
+          pendingRegisteredUser = data.user;
+          txt.textContent = "Creer mon compte";
+          btn.disabled = false;
+          showPhotoStep();
         } catch (err) {
-          Toast.error(err.message || "Erreur lors de l'inscription.");
+          setRegisterError(err.message || "Erreur lors de l'inscription.");
           txt.textContent = "Créer mon compte";
           btn.disabled = false;
         }
@@ -634,3 +854,4 @@
     </script>
   </body>
 </html>
+

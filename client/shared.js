@@ -56,3 +56,42 @@ const Toast = {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+const API_BASE_URL = "http://localhost:4000/api";
+
+const Api = {
+  async request(path, options = {}) {
+    const headers = {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    };
+    const token = Auth.getToken();
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || "Une erreur est survenue. Veuillez reessayer.");
+    }
+
+    return data;
+  },
+
+  get(path) {
+    return this.request(path);
+  },
+
+  post(path, body) {
+    return this.request(path, {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+  }
+};

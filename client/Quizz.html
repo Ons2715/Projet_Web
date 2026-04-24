@@ -439,12 +439,7 @@ function generateLevelQuestions(level) {
 }
 
 const quizUser = Auth.get();
-if (quizUser && (quizUser.firstName || quizUser.lastName)) {
-  document.getElementById('quiz-name-label').textContent = `${quizUser.firstName || ''} ${quizUser.lastName || ''}`.trim();
-}
-if (quizUser && quizUser.formation) {
-  document.getElementById('quiz-formation-badge').textContent = quizUser.formation;
-}
+
 
 document.getElementById('quiz-logout-link').addEventListener('click', function () {
   Auth.clear();
