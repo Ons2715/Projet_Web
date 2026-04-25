@@ -10,7 +10,7 @@ const LeçonS = [
     content: [
       {
         type: "paragraph",
-        text: `<h3>OBJECTIF DE LA SECTION</h3>
+        text: `<h3 style="color: #007bff;">OBJECTIF DE LA SECTION</h3>
 <pre>Sur la route, on croise une multitude d'usagers dans une multitude de cas.
 Dans cette section, vous aller apprendre comment vous devez vous comporter face
 a ces situations :
@@ -40,8 +40,32 @@ en sens inverse de passer. (Vehicule en stationnement sur la chaussee, travaux .
 venant en sens inverse. DONC RALENTIR VOIR M'ARRETER.
 Ici la voiture rouge (en infraction) garee sur le trottoir, constitue un obstacle de mon
 cote. Je dois donc ralentir, voir meme m'arreter, pour laisser la priorite de passage
-a la voiture venant en sens inverse.</pre>`,
+a la voiture venant en sens inverse.
+
+Cas de route étroite
+
+Passage étroit, absence de signalisation : le véhicule le plus encombrant (plus de 2m de large ou
+plus de 7m de long remorque comprise) cède le passage au véhicule de dimension inférieur.
+
+Exception : en agglomération, il faut céder le
+passage aux vehicules de transport en
+commun.</pre>`,
       },
+      { type: "image", src: "photo2.png", alt: "Illustration de croisement" },
+    {
+        type: "paragraph",
+        text: `<pre>
+Ici, à cet endroit rétréci de la chaussée, je dois céder le passage
+ à ce véhicule de transport en commun.
+
+Croisements sur les routes de montagne et à forte déclivité
+Dans une route de montagne et a forte déclivité, le véhicule 
+descendant cède le passage aux véhicules montants.
+Ici, sur cette route étroite et à forte déclivité,
+je cède le passage à La voiture jaune montante .</pre>`},
+      { type: "image", src: "photo3.png", alt: "Illustration de croisement" },
+
+      
     ],
   },
   {
@@ -55,7 +79,7 @@ a la voiture venant en sens inverse.</pre>`,
     content: [
       {
         type: "paragraph",
-        text: `<h3>OBJECTIF DE LA SECTION</h3>
+        text: `<h3 style="color: #007bff;">OBJECTIF DE LA SECTION</h3>
 <pre>Pour rester maitre de son vehicule comme l'exige le code de la route, il est necessaire
 de savoir evaluer la distance necessaire pour arreter son vehicule dans une situation
 d'urgence.
@@ -63,11 +87,59 @@ Se donner les moyens de maitriser sa vitesse permet d'augmenter la securite de c
 Dans cette section vous aller apprendre comment calculer :
 * la distance d'arret
 * la distance de reaction
-* la distance de securite</pre>`,
+* la distance de securite
+<h3>Qu'est ce que la distance d'arret ?</h3>
+
+</pre>`,},
+      { type: "image", src: "distance1.png", alt: "Illustration de distance d'arret" },
+      {
+        type: "paragraph",
+        text: `<pre><h4 style="color: #007bff;">La distance d'arret</h4> est la distance que parcourt le vehicule entre le moment ou le conducteur
+percoit un danger et le moment ou le vehicule s'arrete completement.
+<h4 style="color: #007bff;">Le temps de réaction</h4> est la durée entre le moment où le conducteur réalise la présence de
+l'obstacle et celui où les freins commencent à réagir.
+Cette durée peut augmenter avec la fatigue ou la consommation d'alcool ou de certains
+médicaments.
+<h4 style="color: #007bff;">Calcul de la distance de réaction</h4> 
+Pendant le temps de réaction, le véhicule continu à rouler avec la même vitesse et parcourt une
+distance appelée distance de réaction.
+Distance de réaction en m/s = ( vitesse en km/h/10) * 3
+( avec temps de réaction =1s )
+Exemple
+A 50 km/h, je parcours environ 5 * 3 = 15 m à la seconde
+A 70 km/h, je parcours environ 7 * 3 = 21 m à la seconde
+Qui influence la distance de freinage ?:
+C'est essentiellement la vitesse qui influence la distance de freinage.
+=>La distance varie selon le carré de la vitesse.
+C'est aussi, l'humidité de la route, le type de revêtement routier (lisse ou rugueux l'état du
+matériel de freinage, l'état de la surface des pneus (lisses ou pas ... ).
+<h4 style="color: #007bff;">Cas de réduction de vitesse</h4>
+- conditions de visibilité insuffisante
+- Virages et sections de route étroites ...
+- Sommet de côtes (risque de fin de dépassement en face)
+- Intersections (même avec la priorité)
+- à l'approche des casernes et sorties d'usines
+- lors du croisement ou dépassement d'un groupe de piéton
+- lors du croisement ou dépassement d'animaux de trait, de charge
+- à l'approche des véhicules du transport des personnes lorsque les passagers sont entrain de
+monter ou de descendre
+- à l'approche des stations de transport
+- à l'approche des passages pour piétons.
+- Au panneau de limitation de vitesse
+- Entrée d'agglomération.
+</pre>`,
       },
+            { type: "image", src: "vitesse1.png", alt: "Illustration de distance d'arret" },
+
     ],
   },
-  { id: "Leçon3", name: "Leçon 3", category: "Panneaux de signalisation", step: "3.0 Introduction", progress: "0 / 3", summary: "Reconnaissance des panneaux de danger et obligation.", cover: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=80", content: [{ type: "paragraph", text: "Contenu de Leçon 3. Remplace ici par ton cours sur les panneaux et leurs categories." }] },
+  { id: "Leçon3", name: "Leçon 3", category: "Panneaux de signalisation", step: "3.0 Introduction", progress: "0 / 3", summary: "Reconnaissance des panneaux de danger et obligation.", cover: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=1200&q=80", content: [
+    { type: "paragraph", text:`<pre> <h4 style="color: #007bff;">Forme et couleur</h4>
+Ils ont une forme ronde avec un fond bleu entoure ou barre par
+du rouge. Ces panneaux interdisent ou réglementent le stationnement ou
+l'arrêt dans un lieu et un temps déterminé </pre>` , },
+      { type: "image", src: "pan1.png", alt: "Illustration de distance d'arret" },
+] },
   { id: "Leçon4", name: "Leçon 4", category: "Priorites", step: "4.0 Introduction", progress: "0 / 3", summary: "Comprendre la priorite a droite et les ceders le passage.", cover: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80", content: [{ type: "paragraph", text: "Contenu de Leçon 4. Tu pourras y mettre les cas de priorite et les exceptions importantes." }] },
   { id: "Leçon5", name: "Leçon 5", category: "Stationnement", step: "5.0 Introduction", progress: "0 / 3", summary: "Les bases du stationnement et des interdictions.", cover: "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1200&q=80", content: [{ type: "paragraph", text: "Contenu de Leçon 5. Remplace par tes notions sur l'arret, le stationnement et les interdictions." }] },
   { id: "Leçon6", name: "Leçon 6", category: "Depassement", step: "6.0 Introduction", progress: "0 / 3", summary: "Quand depasser et comment le faire en securite.", cover: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80", content: [{ type: "paragraph", text: "Contenu de Leçon 6. Mets ici les regles du depassement, les controles et les interdictions." }] },
