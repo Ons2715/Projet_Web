@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduCar - Admin Utilisateurs</title>
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="dashboardClient.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <div class="client-shell">
+      <aside class="client-sidebar">
+        <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
+        <nav class="client-nav">
+          <a class="client-nav-link active" href="./adminUsers.html">Utilisateurs</a>
+          <a class="client-nav-link" href="./adminReclamations.html">Reclamations</a>
+        </nav>
+        <div class="client-sidebar-footer">
+          <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="admin-logout-link">Deconnexion</a>
+        </div>
+      </aside>
+
+      <main class="client-main admin-main">
+        <header class="client-topbar">
+          <div>
+            <p class="client-kicker">Administration</p>
+            <h1 class="h2">Gestion des utilisateurs</h1>
+            <p class="text-muted">Liste des moniteurs et candidats, avec creation de nouveaux profils.</p>
+          </div>
+        </header>
+
+        <section class="admin-layout">
+          <section class="card">
+            <div class="card-body">
+              <div class="admin-toolbar">
+                <div>
+                  <p class="client-kicker">Profils</p>
+                  <h2 class="h3">Utilisateurs inscrits</h2>
+                </div>
+                <div class="admin-toolbar-actions">
+                  <input class="form-input admin-search-input" id="user-search" type="search" placeholder="Rechercher nom ou email" />
+                  <button class="btn btn-primary" type="button" id="open-user-modal-btn">Ajouter un utilisateur</button>
+                </div>
+              </div>
+
+              <div class="admin-user-lists">
+                <section class="admin-user-section">
+                  <div class="admin-list-title">
+                    <h3 class="h4">Candidats</h3>
+                    <span class="badge badge-accent" id="students-count">0</span>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Photo</th>
+                          <th>Nom</th>
+                          <th>Email</th>
+                          <th>Telephone</th>
+                          <th>Formation</th>
+                          <th>Encadre(e) par</th>
+                          <th>Creation</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="students-table-body"></tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section class="admin-user-section">
+                  <div class="admin-list-title">
+                    <h3 class="h4">Moniteurs</h3>
+                    <span class="badge badge-primary" id="monitors-count">0</span>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Photo</th>
+                          <th>Nom</th>
+                          <th>Email</th>
+                          <th>Telephone</th>
+                          <th>Voiture</th>
+                          <th>Creation</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="monitors-table-body"></tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-overlay" id="user-modal">
+      <div class="modal admin-user-modal">
+        <div class="modal-header">
+          <div>
+            <p class="client-kicker">Nouveau profil</p>
+            <h2 class="modal-title">Ajouter un utilisateur</h2>
+          </div>
+          <button class="btn btn-ghost btn-icon" type="button" id="close-user-modal-btn" aria-label="Fermer">x</button>
+        </div>
+        <form class="admin-form" id="admin-user-form">
+          <input id="admin-role" type="hidden" value="eleve" />
+          <div class="admin-profile-switch" role="group" aria-label="Type de profil">
+            <button class="admin-profile-option active" type="button" data-role="eleve">
+              <span>Candidat</span>
+              <small>Formation + moniteur</small>
+            </button>
+            <button class="admin-profile-option" type="button" data-role="moniteur">
+              <span>Moniteur</span>
+              <small>Voiture uniquement</small>
+            </button>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="admin-firstname">Prenom</label>
+              <input class="form-input" id="admin-firstname" type="text" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="admin-lastname">Nom</label>
+              <input class="form-input" id="admin-lastname" type="text" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="admin-email">Email</label>
+            <input class="form-input" id="admin-email" type="email" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="admin-phone">Telephone</label>
+            <input class="form-input" id="admin-phone" type="tel" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="admin-address">Adresse</label>
+            <input class="form-input" id="admin-address" type="text" required />
+          </div>
+          <div class="form-group" id="formation-group">
+            <label class="form-label" for="admin-formation">Formation</label>
+            <select class="form-select" id="admin-formation">
+              <option value="1">Permis B boite manuelle</option>
+              <option value="2">Permis B boite automatique</option>
+            </select>
+          </div>
+          <div class="form-group" id="assigned-monitor-group">
+            <label class="form-label" for="assigned-monitor">Encadre(e) par</label>
+            <input class="form-input" id="assigned-monitor" type="text" readonly />
+          </div>
+          <div class="form-group" id="car-group" hidden>
+            <label class="form-label" for="admin-car">Voiture</label>
+            <select class="form-select" id="admin-car">
+              <option>Renault Clio</option>
+              <option>Kia Picanto</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="admin-password">Mot de passe</label>
+            <input class="form-input" id="admin-password" type="password" minlength="8" required />
+          </div>
+          <div class="admin-form-actions">
+            <button class="btn btn-ghost" type="reset">Vider</button>
+            <button class="btn btn-primary" type="submit" id="save-user-btn">Ajouter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="shared.js"></script>
+    <script src="adminUsers.js"></script>
+  </body>
+</html>

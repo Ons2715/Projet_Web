@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CityDrive - Dashboard Client</title>
+    <title>EduCar - Dashboard Client</title>
     <link rel="stylesheet" href="shared.css" />
     <link rel="stylesheet" href="dashboardClient.css" />
   </head>
   <body>
     <div class="client-shell">
       <aside class="client-sidebar">
-        <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+        <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
 
         
 
@@ -91,7 +91,7 @@
                 </div>
                 <div class="history-content">
                   <h3>Revision code de la route</h3>
-                  <p>Emplacement : Salle Code CityDrive, Ariana</p>
+                  <p>Emplacement : Salle Code EduCar, Ariana</p>
                 </div>
                 <span class="badge badge-muted">Theorie</span>
               </article>
@@ -115,11 +115,19 @@
     <script src="shared.js"></script>
     <script>
       const user = Auth.get();
+      function getInitials(firstName = "", lastName = "") {
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "EC";
+      }
+
       if (user && (user.firstName || user.lastName)) {
         document.getElementById("client-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+        document.getElementById("client-photo-fallback").textContent = getInitials(user.firstName, user.lastName);
       }
       if (user && user.formation) {
         document.getElementById("client-formation-badge").textContent = user.formation;
+      }
+      if (user && (user.photo || user.avatar)) {
+        document.getElementById("client-profile-photo").innerHTML = `<img src="${user.photo || user.avatar}" alt="Photo de profil" />`;
       }
 
       document.getElementById("client-logout-link").addEventListener("click", function () {

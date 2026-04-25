@@ -1,4 +1,5 @@
 import { createUser, findUserByEmail } from "../repositories/authRepository.js";
+import { sendWelcomeEmail } from "./mailService.js";
 import { hashPassword, verifyPassword } from "../utils/password.js";
 import { createToken } from "../utils/token.js";
 
@@ -7,6 +8,9 @@ const ROLE_TO_CLIENT = {
   moniteur: "monitor",
   eleve: "student"
 };
+
+const DEFAULT_ADMIN_EMAIL = "admin@gmail.com";
+const DEFAULT_ADMIN_PASSWORD = "987654321";
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -41,12 +45,34 @@ function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function validatePhone(phone) {
+  return /^[0-9]{8}$/.test(String(phone || "").trim());
+}
+
 export async function loginUser({ email, password }) {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail || !password) {
     const error = new Error("Veuillez saisir votre email et votre mot de passe.");
     error.status = 400;
     throw error;
+  }
+
+  if (normalizedEmail === DEFAULT_ADMIN_EMAIL && password === DEFAULT_ADMIN_PASSWORD) {
+    const adminUser = {
+      id: 0,
+      firstName: "Admin",
+      lastName: "EduCar",
+      name: "Admin EduCar",
+      email: DEFAULT_ADMIN_EMAIL,
+      role: "admin",
+      serverRole: "admin",
+      phone: "",
+      address: "",
+      formation: "Administration"
+    };
+    const token = createToken({ id: 0, email: DEFAULT_ADMIN_EMAIL, role: "admin" });
+
+    return { user: adminUser, token };
   }
 
   const user = await findUserByEmail(normalizedEmail);
@@ -89,6 +115,12 @@ export async function registerUser(payload) {
     throw error;
   }
 
+  if (!validatePhone(payload.telephone)) {
+    const error = new Error("Le numero de telephone doit contenir exactement 8 chiffres.");
+    error.status = 400;
+    throw error;
+  }
+
   if (String(payload.motDePasse).length < 8) {
     const error = new Error("Le mot de passe doit contenir au moins 8 caracteres.");
     error.status = 400;
@@ -116,6 +148,10 @@ export async function registerUser(payload) {
   const user = await findUserByEmail(email);
   const clientUser = toClientUser(user || { id: userId, nom, email, role, telephone: payload.telephone, adresse });
   const token = createToken({ id: userId, email, role });
+
+  sendWelcomeEmail(clientUser).catch((error) => {
+    console.error("Erreur email de bienvenue:", error.message);
+  });
 
   return { user: clientUser, token };
 }

@@ -302,6 +302,10 @@
 }
 
 .planning-monitor-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
   margin-bottom: 16px;
 }
 
@@ -410,6 +414,18 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.planning-upcoming-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.reclamation-form {
+  display: grid;
+  gap: 16px;
 }
 
 .planning-cancel-note {
@@ -528,6 +544,11 @@
     justify-items: start;
   }
 
+  .planning-upcoming-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
   .planning-Leçon-item {
     grid-template-columns: 1fr;
   }
@@ -541,6 +562,11 @@
 
   .planning-monitor-profile {
     grid-template-columns: 1fr;
+  }
+
+  .planning-monitor-card-head {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .planning-day {

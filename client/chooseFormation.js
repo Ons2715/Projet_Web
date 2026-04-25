@@ -43,7 +43,10 @@ const formationCards = document.querySelectorAll(".plan-card");
       }
 
       function openWalletModal() {
-        walletModalFrame.src = "wallet.html?embedded=1";
+        const activeCard = document.querySelector(".plan-card.selected");
+        const formation = activeCard ? activeCard.dataset.formation : "Formation EduCar";
+        const amount = selectedTotal.textContent;
+        walletModalFrame.src = `wallet.html?embedded=1&formation=${encodeURIComponent(formation)}&amount=${encodeURIComponent(amount)}`;
         walletModalOverlay.classList.add("open");
         walletModalOverlay.setAttribute("aria-hidden", "false");
         document.body.classList.add("wallet-modal-open");
@@ -75,7 +78,7 @@ const formationCards = document.querySelectorAll(".plan-card");
       });
 
       window.addEventListener("message", function (event) {
-        if (event.data && event.data.type === "citydrive-wallet-close") {
+        if (event.data && event.data.type === "EduCar-wallet-close") {
           closeWalletModal();
         }
       });

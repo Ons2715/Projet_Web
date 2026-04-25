@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EduCar - Reclamation</title>
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="dashboardClient.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body>
+    <div class="client-shell">
+      <aside class="client-sidebar">
+        <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
+        <nav class="client-nav">
+          <a class="client-nav-link" href="./adminUsers.html">Utilisateurs</a>
+          <a class="client-nav-link active" href="./adminReclamations.html">Reclamations</a>
+        </nav>
+        <div class="client-sidebar-footer">
+          <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="admin-logout-link">Deconnexion</a>
+        </div>
+      </aside>
+
+      <main class="client-main admin-main">
+        <header class="client-topbar">
+          <div>
+            <p class="client-kicker">Administration</p>
+            <h1 class="h2">Reclamations</h1>
+            <p class="text-muted">Suivi des reclamations envoyees depuis l'espace client.</p>
+          </div>
+        </header>
+
+        <section class="card">
+          <div class="card-body">
+            <div class="admin-reclamation-head">
+              <div>
+                <p class="client-kicker">Demandes</p>
+                <h2 class="h3">Reclamations recues</h2>
+              </div>
+              <span class="badge badge-primary" id="reclamation-count">0 reclamation</span>
+            </div>
+            <div class="admin-reclamation-list" id="reclamation-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="shared.js"></script>
+    <script src="adminReclamations.js"></script>
+  </body>
+</html>

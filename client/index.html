@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CityDrive - Driving School</title>
+  <title>EduCar - Driving School</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -48,16 +48,18 @@
 <body class="flex min-h-screen flex-col bg-background text-on-background">
   <nav class="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur-md">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-      <a class="text-2xl font-black uppercase tracking-tight text-slate-900" href="./index.html">CityDrive</a>
+      <a class="text-2xl font-black tracking-tight text-slate-900" href="./index.html">Edu<span class="text-amber-400">Car</span></a>
 
       <div class="hidden items-center gap-8 md:flex">
         <a class="border-b-2 border-amber-500 pb-1 font-bold text-amber-500 transition-transform duration-150 active:scale-95" href="./index.html">Accueil</a>
-               <a class="border-b-2 border-amber-500 pb-1 font-bold text-amber-500 transition-transform duration-150 active:scale-95" href="./tarifs.html">Tarifs</a>
-
+        <a class="px-1 py-1 font-bold text-slate-700 transition-colors duration-200 hover:text-amber-500" href="#formations">Formations</a>
+        <a class="px-1 py-1 font-bold text-slate-700 transition-colors duration-200 hover:text-amber-500" href="#formations">Tarifs</a>
+        <a class="px-1 py-1 font-bold text-slate-700 transition-colors duration-200 hover:text-amber-500" href="#contact">Contact</a>
       </div>
 
       <div class="hidden items-center gap-4 md:flex">
         <a class="px-4 py-2 text-sm font-semibold text-on-surface transition-colors duration-200 hover:text-amber-600" href="./login.html">Connexion</a>
+        <a class="rounded-lg bg-primary-container px-4 py-2 text-sm font-bold text-slate-900 transition-colors duration-200 hover:bg-amber-400" href="./login.html#register">Creer un compte</a>
       </div>
 
       <button class="text-on-surface md:hidden" type="button" aria-label="Ouvrir le menu">
@@ -85,7 +87,7 @@
           <p class="mb-8 text-lg text-slate-200">
             Maitrisez le code de la route, reservez vos heures de conduite en ligne et suivez votre progression avec une ecole nouvelle generation.
           </p>
-          <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./login.html">
+          <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./login.html#register">
             Commencer maintenant
             <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
           </a>
@@ -93,14 +95,14 @@
       </div>
     </section>
 
-    <section class="bg-surface-container-lowest py-xl">
+    <section class="bg-surface-container-lowest py-xl" id="formations">
       <div class="mx-auto max-w-7xl px-6">
         <div class="mb-12 text-center">
           <h2 class="text-3xl font-bold uppercase tracking-wide text-slate-800">Nos Formations</h2>
         </div>
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <a class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md" href="./formations.html#code">
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md">
             <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
             <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">menu_book</span>
             <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Code</h3>
@@ -112,9 +114,9 @@
                 <li><span>Pack Illimite</span><strong>Acces complet - 250 DT</strong></li>
               </ul>
             </div>
-          </a>
+          </article>
 
-          <a class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md" href="./formations.html#permis-b">
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md">
             <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
             <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">directions_car</span>
             <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Permis B</h3>
@@ -126,9 +128,9 @@
                 <li><span>Pack Complet</span><strong>30 seances - 1 450 DT</strong></li>
               </ul>
             </div>
-          </a>
+          </article>
 
-          <a class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md" href="./formations.html#automatique">
+          <article class="group formation-card relative flex flex-col items-center gap-6 rounded-lg bg-slate-100 p-8 transition-all duration-300 hover:shadow-md">
             <div class="formation-corner absolute bottom-0 right-0 h-6 w-6 rounded-tl-lg bg-slate-300"></div>
             <span class="material-symbols-outlined material-symbol-filled text-6xl text-slate-700 transition-colors group-hover:text-primary-container">auto_transmission</span>
             <h3 class="text-center text-sm font-bold uppercase text-slate-800 md:text-base">Permis B Automatique</h3>
@@ -140,7 +142,7 @@
                 <li><span>Pack Complet</span><strong>25 seances - 1 300 DT</strong></li>
               </ul>
             </div>
-          </a>
+          </article>
 
         </div>
       </div>
@@ -194,8 +196,8 @@
     <section class="bg-slate-800 py-xl text-surface-container-lowest">
       <div class="mx-auto max-w-4xl px-6 text-center">
         <h2 class="mb-6 text-3xl font-bold md:text-4xl">Pret a prendre le volant ?</h2>
-        <p class="mb-8 text-lg text-slate-300">Rejoignez des milliers de conducteurs formes avec succes par CityDrive.</p>
-        <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./inscription.html">
+        <p class="mb-8 text-lg text-slate-300">Rejoignez des milliers de conducteurs formes avec succes par EduCar.</p>
+        <a class="inline-flex items-center gap-2 rounded-lg bg-primary-container px-8 py-4 font-bold text-slate-900 shadow-lg transition-all duration-150 hover:bg-amber-400 active:scale-95" href="./login.html#register">
           Creer mon compte
           <span class="material-symbols-outlined">how_to_reg</span>
         </a>
@@ -203,19 +205,36 @@
     </section>
   </main>
 
-  <footer class="w-full border-t border-slate-800 bg-slate-900 text-sm">
-    <div class="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-6 py-12 md:flex-row">
+  <footer class="w-full border-t border-slate-800 bg-slate-950 text-sm" id="contact">
+    <div class="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-[1.2fr_1fr_1fr]">
       <div>
-        <div class="mb-4 text-xl font-bold text-white">CityDrive</div>
-        <p class="text-slate-400">© 2024 CityDrive Driving School. Excellence in Urban Mobility.</p>
+        <div class="mb-4 text-2xl font-black text-white">Edu<span class="text-amber-400">Car</span></div>
+        <p class="max-w-md leading-7 text-slate-400">
+          Auto-ecole moderne pour apprendre, reserver et suivre votre progression avec un accompagnement clair.
+        </p>
       </div>
 
-      <div class="flex flex-col gap-6 md:flex-row">
-        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./legal.html">Mentions Legales</a>
-        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./privacy.html">Politique de Confidentialite</a>
-        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./terms.html">Conditions Generales</a>
-        <a class="text-slate-400 opacity-90 transition-colors duration-200 hover:text-amber-500 hover:opacity-100" href="./contact.html">Contact</a>
+      <div>
+        <h3 class="mb-4 font-bold uppercase tracking-wide text-white">Contact</h3>
+        <div class="grid gap-3 text-slate-400">
+          <p>Email : contact@educar.tn</p>
+          <p>Telephone : +216 20 000 000</p>
+          <p>Adresse : Centre Urbain Nord, Tunis</p>
+        </div>
       </div>
+
+      <div>
+        <h3 class="mb-4 font-bold uppercase tracking-wide text-white">Liens</h3>
+        <div class="grid gap-3">
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="#formations">Formations</a>
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="#formations">Tarifs</a>
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="./login.html#register">Creer un compte</a>
+          <a class="text-slate-400 transition-colors duration-200 hover:text-amber-500" href="./login.html">Connexion</a>
+        </div>
+      </div>
+    </div>
+    <div class="border-t border-slate-800 px-6 py-5 text-center text-xs text-slate-500">
+      � 2026 EduCar. Tous droits reserves.
     </div>
   </footer>
 </body>

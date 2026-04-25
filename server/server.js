@@ -2,5 +2,5 @@ import { app } from "./app.js";
 import { env } from "./config/env.js";
 
 app.listen(env.port, () => {
-  console.log(`API CityDrive disponible sur http://localhost:${env.port}`);
+  console.log(`API EduCar disponible sur http://localhost:${env.port}`);
 });

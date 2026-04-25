@@ -1,4 +1,4 @@
- const BOOKINGS_KEY = "citydrive_client_bookings";
+ const BOOKINGS_KEY = "EduCar_client_bookings";
     const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
     const DAY_START_HOUR = 7;
     const DAY_END_HOUR = 19;
@@ -76,7 +76,7 @@
     function getMapsUrl(booking) {
       if (booking.mapsUrl) return booking.mapsUrl;
       if (booking.place && booking.place.startsWith("http")) return booking.place;
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.place || "CityDrive Tunis")}`;
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.place || "EduCar Tunis")}`;
     }
 
     function getBookingStartMinutes(booking) {

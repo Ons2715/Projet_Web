@@ -10,6 +10,10 @@ export function errorHandler(error, req, res, next) {
     message = "La ressource liee est introuvable.";
   }
 
+  if (error.code === "ER_CHECK_CONSTRAINT_VIOLATED" && String(error.message || "").includes("chk_telephone")) {
+    message = "Le numero de telephone doit contenir exactement 8 chiffres.";
+  }
+
   res.status(status).json({
     error: message
   });

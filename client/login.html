@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CityDrive — Connexion</title>
+    <title>EduCar — Connexion</title>
     <link rel="stylesheet" href="shared.css" />
     <style>
       .auth-page {
@@ -367,7 +367,7 @@
     <div class="auth-page">
       <!-- Left panel -->
       <div class="auth-left">
-        <div class="auth-brand">City<span>Drive</span></div>
+        <div class="auth-brand">Edu<span>Car</span></div>
         <div class="auth-left-content">
           <h1 class="auth-tagline">
             Votre permis,<br />votre <em>liberté.</em>
@@ -391,7 +391,7 @@
             </div>
           </div>
         </div>
-        <div class="auth-left-footer">© 2026 CityDrive · Mentions légales</div>
+        <div class="auth-left-footer">© 2026 EduCar · Mentions légales</div>
       </div>
 
       <!-- Right panel -->
@@ -491,7 +491,7 @@
           <!-- REGISTER -->
           <div class="panel" id="panel-register">
             <h2 class="auth-form-title">Créer un compte</h2>
-            <p class="auth-form-sub">Rejoignez CityDrive gratuitement.</p>
+            <p class="auth-form-sub">Rejoignez EduCar gratuitement.</p>
             <div class="form-stack">
               <div class="form-grid-2">
                 <div class="form-group">
@@ -721,12 +721,16 @@
         user.photo = selectedProfilePhoto;
         user.avatar = selectedProfilePhoto;
         Auth.set(user);
+        ProfilePhotos.set(user.email, selectedProfilePhoto);
         Toast.success("Photo ajoutee avec succes.");
         location.href = "chooseFormation.html";
       }
 
       function getDashboardByRole(user) {
-        return user && (user.role === "admin" || user.role === "monitor" || user.role === "moniteur")
+        if (user && (user.role === "admin" || user.serverRole === "admin")) {
+          return "adminUsers.html";
+        }
+        return user && (user.role === "monitor" || user.role === "moniteur")
           ? "dashboradMoniteur.html"
           : "dashboardClient.html";
       }
@@ -784,7 +788,7 @@
           const data = await Api.post("/auth/login", { email, password });
           Auth.set(data.user);
           Auth.setToken(data.token);
-          Toast.success(`Bienvenue, ${data.user.firstName || data.user.name || "CityDrive"} !`);
+          Toast.success(`Bienvenue, ${data.user.firstName || data.user.name || "EduCar"} !`);
           await sleep(700);
           location.href = getDashboardByRole(data.user);
         } catch (err) {
@@ -814,6 +818,10 @@
         }
         if (!document.getElementById("reg-email").checkValidity()) {
           setRegisterError("Veuillez saisir une adresse email valide.");
+          return;
+        }
+        if (!/^[0-9]{8}$/.test(fields.phone)) {
+          setRegisterError("Le numero de telephone doit contenir exactement 8 chiffres.");
           return;
         }
         if (!document.getElementById("reg-terms").checked) {

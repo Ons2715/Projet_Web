@@ -1,4 +1,4 @@
-# Backend CityDrive
+# Backend EduCar
 
 Modules backend proposes pour ce site :
 
@@ -11,6 +11,7 @@ Modules backend proposes pour ce site :
 - `quiz` : quiz et questions
 - `payments` : paiements
 - `documents` : documents des eleves
+- `reclamations` : reclamations client avec piece jointe
 
 ## Structure
 
@@ -42,6 +43,20 @@ npm install
 npm run dev
 ```
 
+## SMTP
+
+Pour envoyer automatiquement le mail de bienvenue apres une inscription,
+renseigner ces variables dans `server/.env` :
+
+```bash
+SMTP_HOST=smtp.votre-fournisseur.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=votre@email.com
+SMTP_PASS=votre_mot_de_passe_smtp
+SMTP_FROM="EduCar <votre@email.com>"
+```
+
 ## Exemples d'API
 
 - `GET /health`
@@ -55,3 +70,5 @@ npm run dev
 - `GET /api/quiz`
 - `GET /api/payments`
 - `GET /api/documents`
+- `GET /api/reclamations` (admin)
+- `POST /api/reclamations`

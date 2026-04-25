@@ -24,7 +24,7 @@ CREATE TABLE utilisateurs (
     date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT chk_telephone CHECK (telephone REGEXP '^[0-9]{8}$')
 );
- 
+
 -- ============================================================
 --  FORMATIONS
 -- ============================================================
@@ -56,17 +56,17 @@ CREATE TABLE eleves (
     FOREIGN KEY (id)           REFERENCES utilisateurs(id)
         ON DELETE CASCADE  ON UPDATE CASCADE,
     FOREIGN KEY (id_formation) REFERENCES formations(id)
-        ON DELETE RESTRICT ON UPDATE CASCADE  -- ✅
+        ON DELETE RESTRICT ON UPDATE CASCADE  
 );
 
 CREATE TABLE moniteurs (
     id           INT PRIMARY KEY,
     id_formation INT NOT NULL,
-    voiture      ENUM('Kia Picanto', 'Renault Clio', 'Peugeot 208') NOT NULL,
+    voiture      ENUM('Kia Picanto', 'Renault Clio') NOT NULL,
     FOREIGN KEY (id)           REFERENCES utilisateurs(id)
         ON DELETE CASCADE  ON UPDATE CASCADE,
     FOREIGN KEY (id_formation) REFERENCES formations(id)
-        ON DELETE RESTRICT ON UPDATE CASCADE  -- ✅
+        ON DELETE RESTRICT ON UPDATE CASCADE
 );
  
 -- ============================================================
@@ -142,4 +142,23 @@ CREATE TABLE paiements (
     date_paiement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_montant CHECK (montant > 0),
     FOREIGN KEY (eleve_id) REFERENCES eleves(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ============================================================
+--  RECLAMATIONS
+-- ============================================================
+CREATE TABLE reclamations (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    utilisateur_id  INT NULL,
+    reservation_ref VARCHAR(80) NULL,
+    raison          TEXT NOT NULL,
+    piece_nom       VARCHAR(255) NULL,
+    piece_type      VARCHAR(120) NULL,
+    piece_data      LONGTEXT NULL,
+    statut          ENUM('nouvelle', 'en_cours', 'traitee') NOT NULL DEFAULT 'nouvelle',
+    date_creation   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_reclamations_utilisateur (utilisateur_id),
+    CONSTRAINT fk_reclamations_utilisateur
+        FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );

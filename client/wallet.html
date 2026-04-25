@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CityDrive - Paiement</title>
+    <title>EduCar - Paiement</title>
     <link rel="stylesheet" href="wallet.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
           <div class="rm-header-left">
             <div class="rm-header-icon">CB</div>
             <div>
-              <h2>Recharger le portefeuille</h2>
+              <h2>Paiement de la formation</h2>
               <p id="header-subtitle">Choisissez une methode</p>
             </div>
           </div>
@@ -28,7 +28,7 @@
           </div>
           <div class="rm-progress-step" id="step-dot-2">
             <div class="rm-progress-dot">2</div>
-            <span>Montant</span>
+            <span>Recapitulatif</span>
             <div class="rm-progress-line" id="line-2"></div>
           </div>
           <div class="rm-progress-step" id="step-dot-3">
@@ -56,24 +56,15 @@
         </div>
 
         <div class="rm-body" id="step-2" style="display:none">
-          <p class="rm-subtitle" id="step2-subtitle">Choisissez le montant</p>
-          <div class="rm-quick-grid" id="quick-grid"></div>
-          <div class="rm-divider"><span>ou saisir un montant</span></div>
-          <div class="rm-input-group">
-            <label>Montant personnalise (min. 10 DT)</label>
-            <div class="rm-input-with-unit">
-              <input type="number" id="custom-amount" min="10" placeholder="Ex: 150" oninput="onCustomAmt()" />
-              <span class="rm-input-unit">DT</span>
-            </div>
-          </div>
-          <div class="rm-amount-summary" id="amount-summary" style="display:none">
+          <p class="rm-subtitle" id="step2-subtitle">Verifiez votre paiement</p>
+          <div class="rm-amount-summary" id="amount-summary">
             <div class="rm-amount-row"><span>Methode</span><strong id="sum-method"></strong></div>
-            <div class="rm-amount-row"><span>Montant</span><strong id="sum-amount"></strong></div>
-            <div class="rm-amount-row rm-amount-total"><span>Total credite</span><strong id="sum-total"></strong></div>
+            <div class="rm-amount-row"><span>Formation</span><strong id="sum-formation"></strong></div>
+            <div class="rm-amount-row rm-amount-total"><span>Total a payer</span><strong id="sum-total"></strong></div>
           </div>
           <div class="rm-actions">
             <button class="rm-btn-ghost" onclick="goStep(1)">&lt;- Retour</button>
-            <button class="rm-btn-primary" id="btn-step2" onclick="goStep(3)" disabled>Continuer</button>
+            <button class="rm-btn-primary" id="btn-step2" onclick="goStep(3)">Continuer</button>
           </div>
         </div>
 
@@ -131,10 +122,11 @@
         <div id="step-4" style="display:none">
           <div class="rm-success">
             <div class="rm-success-circle"><div class="rm-success-check">OK</div></div>
-            <h3>Paiement reussi !</h3>
-            <p>Votre portefeuille a ete recharge de <strong id="success-amount"></strong></p>
+            <h3>Paiement termine avec succes</h3>
+            <p>Votre paiement de <strong id="success-amount"></strong> a ete valide.</p>
             <div class="rm-success-method" id="success-method"></div>
-<button class="rm-btn-primary rm-btn-full" onclick="top.location.href='planning.html'">Fermer</button>          </div>
+            <button class="rm-btn-primary rm-btn-full" onclick="goClientSpace()">Aller vers l'espace client</button>
+          </div>
         </div>
       </div>
     </div>

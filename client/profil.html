@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CityDrive - Profil</title>
+    <title>EduCar - Profil</title>
     <link rel="stylesheet" href="shared.css" />
     <link rel="stylesheet" href="dashboardClient.css" />
   </head>
   <body>
     <div class="client-shell">
       <aside class="client-sidebar">
-        <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+        <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
 
    
         <nav class="client-nav" id="profile-nav"></nav>
@@ -33,7 +33,21 @@
 
         <section class="card">
           <div class="card-body">
+            <div class="profile-photo-panel">
+              <div class="profile-photo-preview" id="profile-photo-preview">
+                <span id="profile-photo-fallback">EC</span>
+              </div>
+              <div>
+                <p class="client-kicker" id="profile-space-label">Espace client</p>
+                <h2 class="h3" id="profile-name-label">Candidat EduCar</h2>
+                <span class="badge badge-primary" id="profile-formation-badge">Aucune formation</span>
+              </div>
+            </div>
             <form class="profile-form" id="profile-form">
+              <div class="form-group">
+                <label class="form-label" for="profile-photo-input">Photo de profil</label>
+                <input class="form-input" id="profile-photo-input" type="file" accept="image/*" />
+              </div>
               <div class="form-grid-2">
                 <div class="form-group">
                   <label class="form-label" for="profile-firstname">Prenom</label>
@@ -79,6 +93,20 @@
     <script>
       const user = Auth.get() || {};
       const isMonitor = user.role === "monitor";
+      const profilePhotoPreview = document.getElementById("profile-photo-preview");
+      const selectedFormation = sessionStorage.getItem("selectedFormation") || user.formation || "";
+
+      function getInitials(firstName = "", lastName = "") {
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "EC";
+      }
+
+      function refreshProfilePhoto() {
+        if (user.photo || user.avatar) {
+          profilePhotoPreview.innerHTML = `<img src="${user.photo || user.avatar}" alt="Photo de profil" />`;
+        } else {
+          profilePhotoPreview.innerHTML = `<span id="profile-photo-fallback">${getInitials(user.firstName || "Edu", user.lastName || "Car")}</span>`;
+        }
+      }
 
       const nav = document.getElementById("profile-nav");
       nav.innerHTML = isMonitor
@@ -106,9 +134,34 @@
       document.getElementById("profile-email").value = user.email || "";
       document.getElementById("profile-phone").value = user.phone || "";
       document.getElementById("profile-address").value = user.address || "";
-      document.getElementById("profile-formation").value = user.formation || "Permis B";
+      if (selectedFormation) {
+        user.formation = selectedFormation;
+        Auth.set(user);
+      }
+      document.getElementById("profile-formation").value = user.formation || "Aucune formation selectionnee";
       document.getElementById("profile-name-label").textContent = `${user.firstName || "Jean"} ${user.lastName || "Dupont"}`;
-      document.getElementById("profile-formation-badge").textContent = user.formation || "Permis B";
+      document.getElementById("profile-formation-badge").textContent = user.formation || "Aucune formation";
+      refreshProfilePhoto();
+
+      document.getElementById("profile-photo-input").addEventListener("change", function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          Toast.error("Veuillez choisir une image valide.");
+          this.value = "";
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function () {
+          user.photo = String(reader.result || "");
+          user.avatar = user.photo;
+          Auth.set(user);
+          ProfilePhotos.set(user.email, user.photo);
+          refreshProfilePhoto();
+          Toast.success("Photo de profil mise a jour.");
+        };
+        reader.readAsDataURL(file);
+      });
 
       document.getElementById("profile-form").addEventListener("submit", function (event) {
         event.preventDefault();
@@ -120,6 +173,7 @@
         Auth.set(user);
         Toast.success(isMonitor ? "Profil moniteur mis a jour." : "Profil mis a jour.");
         document.getElementById("profile-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+        refreshProfilePhoto();
       });
 
       document.getElementById("profile-logout-link").addEventListener("click", function () {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CityDrive - Profil Moniteur</title>
+  <title>EduCar - Profil Moniteur</title>
   <link rel="stylesheet" href="shared.css" />
   <link rel="stylesheet" href="dashboardClient.css" />
   <link rel="stylesheet" href="dashboradMoniteur.css" />
@@ -11,7 +11,7 @@
 <body>
   <div class="client-shell monitor-shell">
     <aside class="client-sidebar">
-      <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+      <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
 
       
 
@@ -45,8 +45,22 @@
               <h2 class="h3">Mon profil moniteur</h2>
             </div>
           </div>
+          <div class="profile-photo-panel">
+            <div class="profile-photo-preview" id="monitor-profile-photo-preview">
+              <span id="monitor-profile-photo-fallback">MD</span>
+            </div>
+            <div>
+              <p class="client-kicker">Photo de profil</p>
+              <h3 class="h4" id="monitor-profile-name-label">Moniteur EduCar</h3>
+              <span class="badge badge-primary" id="monitor-profile-formation-badge">Permis B</span>
+            </div>
+          </div>
 
           <form class="profile-form" id="monitor-profile-form">
+            <div class="form-group">
+              <label class="form-label" for="monitor-profile-photo-input">Photo de profil</label>
+              <input class="form-input" id="monitor-profile-photo-input" type="file" accept="image/*" />
+            </div>
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label" for="monitor-profile-firstname">Prenom</label>
@@ -90,8 +104,21 @@
 
   <script src="shared.js"></script>
   <script>
-    const MONITOR_PROFILE_KEY = "citydrive_monitor_profile";
+    const MONITOR_PROFILE_KEY = "EduCar_monitor_profile";
     const monitorUser = Auth.get() || {};
+    const monitorPhotoPreview = document.getElementById("monitor-profile-photo-preview");
+
+    function getInitials(firstName = "", lastName = "") {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "MD";
+    }
+
+    function refreshMonitorPhoto() {
+      if (monitorUser.photo || monitorUser.avatar) {
+        monitorPhotoPreview.innerHTML = `<img src="${monitorUser.photo || monitorUser.avatar}" alt="Photo de profil" />`;
+      } else {
+        monitorPhotoPreview.innerHTML = `<span id="monitor-profile-photo-fallback">${getInitials(monitorUser.firstName || "Mourad", monitorUser.lastName || "Drive")}</span>`;
+      }
+    }
 
     function syncMonitorProfile() {
       localStorage.setItem(MONITOR_PROFILE_KEY, JSON.stringify({
@@ -118,7 +145,29 @@
       document.getElementById("monitor-profile-phone").value = monitorUser.phone || "";
       document.getElementById("monitor-profile-address").value = monitorUser.address || "";
       document.getElementById("monitor-profile-formation").value = formation;
+      refreshMonitorPhoto();
     }
+
+    document.getElementById("monitor-profile-photo-input").addEventListener("change", function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        Toast.error("Veuillez choisir une image valide.");
+        this.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        monitorUser.photo = String(reader.result || "");
+        monitorUser.avatar = monitorUser.photo;
+        Auth.set(monitorUser);
+        ProfilePhotos.set(monitorUser.email, monitorUser.photo);
+        syncMonitorProfile();
+        refreshMonitorPhoto();
+        Toast.success("Photo de profil mise a jour.");
+      };
+      reader.readAsDataURL(file);
+    });
 
     document.getElementById("monitor-profile-form").addEventListener("submit", function (event) {
       event.preventDefault();
@@ -131,6 +180,7 @@
       Auth.set(monitorUser);
       syncMonitorProfile();
       refreshMonitorProfileView();
+      refreshMonitorPhoto();
       Toast.success("Profil moniteur mis a jour.");
     });
 

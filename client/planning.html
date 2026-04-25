@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CityDrive - Reservation</title>
+<title>EduCar - Reservation</title>
 <link rel="stylesheet" href="shared.css"/>
 <link rel="stylesheet" href="dashboardClient.css"/>
 <link rel="stylesheet" href="planning.css"/>
@@ -11,7 +11,7 @@
 <body>
 <div class="client-shell">
   <aside class="client-sidebar">
-    <a class="client-brand" href="./index.html">City<span>Drive</span></a>
+    <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
 
 
 
@@ -74,6 +74,7 @@
                 <p class="client-kicker">Moniteur</p>
                 <h3 class="h4">Coordonnées du moniteur</h3>
               </div>
+              <button class="btn btn-primary btn-sm" type="button" onclick="openReclamationModal(-1)">Reclamer</button>
             </div>
 
             <div class="planning-monitor-profile">
@@ -168,6 +169,33 @@
       </div>
     </section>
   </main>
+</div>
+
+<div id="planning-LeÃ§ons-list" hidden></div>
+<div id="planning-Leçons-list" hidden></div>
+
+<div class="modal-overlay" id="reclamation-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Reclamer </h2>
+      <button class="btn btn-ghost btn-icon" type="button" id="close-reclamation-modal" aria-label="Fermer">x</button>
+    </div>
+    <form class="reclamation-form" id="reclamation-form">
+      <div class="form-group">
+        <label class="form-label" for="reclamation-reason">Raison</label>
+        <textarea class="form-textarea" id="reclamation-reason" required placeholder="Expliquez votre reclamation."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reclamation-file">Piece jointe</label>
+        <input class="form-input" id="reclamation-file" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" />
+        <p class="form-hint">Image ou PDF, 2 Mo maximum.</p>
+      </div>
+      <div class="planning-actions">
+        <button class="btn btn-primary" type="submit" id="send-reclamation-btn">Envoyer</button>
+        <button class="btn btn-ghost" type="button" id="cancel-reclamation-btn">Annuler</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script src="shared.js"></script>

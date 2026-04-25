@@ -11,12 +11,12 @@ app.use(
     origin: env.clientOrigin
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "3mb" }));
 
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    app: "citydrive-backend"
+    app: "educar-backend"
   });
 });
 

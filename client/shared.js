@@ -1,5 +1,6 @@
-const STORAGE_USER_KEY = "citydrive_user";
-const STORAGE_TOKEN_KEY = "citydrive_token";
+const STORAGE_USER_KEY = "EduCar_user";
+const STORAGE_TOKEN_KEY = "EduCar_token";
+const STORAGE_PHOTOS_KEY = "EduCar_profile_photos";
 
 const Auth = {
   get() {
@@ -93,5 +94,39 @@ const Api = {
       method: "POST",
       body: JSON.stringify(body)
     });
+  },
+
+  patch(path, body = {}) {
+    return this.request(path, {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    });
+  },
+
+  delete(path) {
+    return this.request(path, {
+      method: "DELETE"
+    });
+  }
+};
+
+const ProfilePhotos = {
+  getAll() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_PHOTOS_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  },
+  get(email) {
+    const photos = this.getAll();
+    return photos[String(email || "").trim().toLowerCase()] || "";
+  },
+  set(email, photo) {
+    const key = String(email || "").trim().toLowerCase();
+    if (!key || !photo) return;
+    const photos = this.getAll();
+    photos[key] = photo;
+    localStorage.setItem(STORAGE_PHOTOS_KEY, JSON.stringify(photos));
   }
 };

@@ -1,4 +1,4 @@
- const BOOKINGS_KEY = "citydrive_client_bookings";
+ const BOOKINGS_KEY = "EduCar_client_bookings";
 
     function getStoredBookings() {
       try {

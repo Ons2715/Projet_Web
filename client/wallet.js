@@ -3,11 +3,10 @@ if (isEmbedded) {
   document.body.classList.add('embedded');
 }
 
-const QUICK_AMOUNTS = [20, 50, 100, 150, 200, 500];
-
 let currentStep = 1;
 let selectedMethod = null;
-let selectedAmount = null;
+let selectedAmount = normalizeAmount(new URLSearchParams(window.location.search).get('amount')) || 250;
+let selectedFormation = new URLSearchParams(window.location.search).get('formation') || 'Formation EduCar';
 
 const fmt = (n) => Number(n).toLocaleString('fr-TN', { minimumFractionDigits: 0 }) + ' DT';
 
@@ -15,63 +14,24 @@ function getEl(id) {
   return document.getElementById(id);
 }
 
-(function buildQuickGrid() {
-  const grid = getEl('quick-grid');
-  QUICK_AMOUNTS.forEach((val) => {
-    const btn = document.createElement('button');
-    btn.className = 'rm-quick-btn';
-    btn.dataset.val = val;
-    btn.innerHTML = `<strong>${val}</strong><span>DT</span>`;
-    btn.onclick = () => pickQuickAmt(val, btn);
-    grid.appendChild(btn);
-  });
-})();
+function normalizeAmount(rawValue) {
+  return Number(String(rawValue || '').replace(/[^\d]/g, '')) || 0;
+}
 
 function selectMethod(label, hint) {
   selectedMethod = { label, hint };
   getEl('header-subtitle').textContent = label;
-  getEl('step2-subtitle').textContent = label + ' - Choisissez le montant';
+  getEl('step2-subtitle').textContent = label + ' - Verifiez votre paiement';
+  updateSummary();
   goStep(2);
 }
 
-function pickQuickAmt(val, btn) {
-  document.querySelectorAll('.rm-quick-btn').forEach((b) => b.classList.remove('active'));
-  btn.classList.add('active');
-  selectedAmount = val;
-  getEl('custom-amount').value = '';
-  updateSummary();
-  updateStep2Btn();
-}
-
-function onCustomAmt() {
-  const v = parseFloat(getEl('custom-amount').value);
-  document.querySelectorAll('.rm-quick-btn').forEach((b) => b.classList.remove('active'));
-  selectedAmount = v && v >= 10 ? v : null;
-  updateSummary();
-  updateStep2Btn();
-}
-
 function updateSummary() {
-  const summary = getEl('amount-summary');
-  if (selectedAmount && selectedAmount >= 10) {
-    getEl('sum-method').textContent = selectedMethod?.label ?? '-';
-    getEl('sum-amount').textContent = fmt(selectedAmount);
-    getEl('sum-total').textContent = fmt(selectedAmount);
-    summary.style.display = 'block';
-  } else {
-    summary.style.display = 'none';
-  }
-}
-
-function updateStep2Btn() {
+  getEl('sum-method').textContent = selectedMethod?.label ?? '-';
+  getEl('sum-formation').textContent = selectedFormation;
+  getEl('sum-total').textContent = fmt(selectedAmount);
   const btn = getEl('btn-step2');
-  if (selectedAmount && selectedAmount >= 10) {
-    btn.disabled = false;
-    btn.textContent = `Continuer - ${fmt(selectedAmount)}`;
-  } else {
-    btn.disabled = true;
-    btn.textContent = 'Continuer';
-  }
+  btn.textContent = `Continuer - ${fmt(selectedAmount)}`;
 }
 
 function fmtCardNum() {
@@ -118,9 +78,13 @@ function handleConfirmPayment() {
   btn.disabled = true;
   setTimeout(() => {
     getEl('success-amount').textContent = fmt(selectedAmount);
-    getEl('success-method').textContent = selectedMethod?.label ?? '';
+    getEl('success-method').textContent = `${selectedFormation} - ${selectedMethod?.label ?? ''}`;
     goStep(4);
   }, 1800);
+}
+
+function goClientSpace() {
+  top.location.href = 'dashboardClient.html';
 }
 
 function goStep(n) {
@@ -148,7 +112,7 @@ function updateProgress(n) {
 
 function closeModal() {
   if (isEmbedded && window.parent && window.parent !== window) {
-    window.parent.postMessage({ type: 'citydrive-wallet-close' }, '*');
+    window.parent.postMessage({ type: 'EduCar-wallet-close' }, '*');
     return;
   }
   getEl('overlay').style.display = 'none';

@@ -1,19 +1,19 @@
-const BOOKINGS_KEY = "citydrive_client_bookings";
-const MONITOR_PROFILE_KEY = "citydrive_monitor_profile";
+const BOOKINGS_KEY = "EduCar_client_bookings";
+const MONITOR_PROFILE_KEY = "EduCar_monitor_profile";
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const SESSION_TYPES = [
   {
     id: "1h",
     label: "1 heure",
     duration: "1h",
-    place: "Agence CityDrive, Centre Urbain Nord, Tunis",
+    place: "Agence EduCar, Centre Urbain Nord, Tunis",
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
   },
   {
     id: "2h",
     label: "2 heures",
     duration: "2h",
-    place: "Agence CityDrive, Centre Urbain Nord, Tunis",
+    place: "Agence EduCar, Centre Urbain Nord, Tunis",
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
   }
 ];
@@ -48,6 +48,7 @@ monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
 let selectedDateKey = "";
 let selectedTypeId = SESSION_TYPES[0].id;
 let selectedSlot = "";
+let selectedReclamationIndex = -1;
 
 function normalizeDate(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -88,7 +89,8 @@ function getMonitorProfile() {
       return {
         firstName: storedProfile.firstName || DEFAULT_MONITOR_PROFILE.firstName,
         lastName: storedProfile.lastName || DEFAULT_MONITOR_PROFILE.lastName,
-        phone: storedProfile.phone || DEFAULT_MONITOR_PROFILE.phone
+        phone: storedProfile.phone || DEFAULT_MONITOR_PROFILE.phone,
+        photo: storedProfile.photo || ""
       };
     }
   } catch {}
@@ -105,7 +107,12 @@ function renderMonitorProfile() {
   const monitorProfile = getMonitorProfile();
   document.getElementById("monitor-fullname").value = `${monitorProfile.firstName} ${monitorProfile.lastName}`.trim();
   document.getElementById("monitor-phone").value = monitorProfile.phone;
-  document.getElementById("monitor-photo-fallback").textContent = getInitials(monitorProfile.firstName, monitorProfile.lastName);
+  const photoBox = document.querySelector(".planning-monitor-photo");
+  if (monitorProfile.photo) {
+    photoBox.innerHTML = `<img src="${monitorProfile.photo}" alt="Photo du moniteur" />`;
+  } else {
+    photoBox.innerHTML = `<span id="monitor-photo-fallback">${getInitials(monitorProfile.firstName, monitorProfile.lastName)}</span>`;
+  }
 }
 
 function renderPlanningLeçons() {
@@ -247,7 +254,10 @@ function renderUpcomingBookings() {
           <div class="planning-upcoming-meta"><a class="planning-place-link" href="${booking.mapsUrl}" target="_blank" rel="noopener noreferrer">${booking.place}</a></div>
           <div class="planning-upcoming-meta">${booking.note || "Sans note particuliere"}</div>
         </div>
-        <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking(${index})">Annuler</button>
+        <div class="planning-upcoming-actions">
+          <button class="btn btn-outline btn-sm" type="button" onclick="openReclamationModal(${index})">Reclamer</button>
+          <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking(${index})">Annuler</button>
+        </div>
       </article>
     `;
   }).join("");
@@ -352,6 +362,80 @@ function cancelBooking(index) {
   Toast.success("Reservation annulee.");
 }
 
+function openReclamationModal(index) {
+  selectedReclamationIndex = index;
+  document.getElementById("reclamation-form").reset();
+  document.getElementById("reclamation-modal").classList.add("open");
+}
+
+function closeReclamationModal() {
+  selectedReclamationIndex = -1;
+  document.getElementById("reclamation-modal").classList.remove("open");
+}
+
+function readAttachment(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      resolve({ pieceNom: "", pieceType: "", pieceData: "" });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      reject(new Error("La piece jointe ne doit pas depasser 2 Mo."));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve({
+        pieceNom: file.name,
+        pieceType: file.type,
+        pieceData: String(reader.result || "")
+      });
+    };
+    reader.onerror = () => reject(new Error("Impossible de lire la piece jointe."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitReclamation(event) {
+  event.preventDefault();
+  const bookings = getStoredBookings();
+  const booking = bookings[selectedReclamationIndex];
+  const reason = document.getElementById("reclamation-reason").value.trim();
+  const file = document.getElementById("reclamation-file").files[0];
+  const button = document.getElementById("send-reclamation-btn");
+
+  if (!booking && selectedReclamationIndex !== -1) {
+    Toast.error("Reservation introuvable.");
+    closeReclamationModal();
+    return;
+  }
+
+  if (!reason) {
+    Toast.error("Veuillez saisir la raison.");
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    const attachment = await readAttachment(file);
+    await Api.post("/reclamations", {
+      utilisateurId: planningUser?.id,
+      reservationRef: booking ? `${booking.date} ${booking.time}` : "Coordonnees moniteur",
+      raison: reason,
+      ...attachment
+    });
+    Toast.success("Reclamation envoyee.");
+    closeReclamationModal();
+  } catch (error) {
+    Toast.error(error.message);
+  } finally {
+    button.disabled = false;
+  }
+}
+
 document.getElementById("prev-month-btn").addEventListener("click", function () {
   monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1);
   renderCalendar();
@@ -364,6 +448,9 @@ document.getElementById("next-month-btn").addEventListener("click", function () 
 
 document.getElementById("book-btn").addEventListener("click", confirmBooking);
 document.getElementById("reset-btn").addEventListener("click", resetBookingSelection);
+document.getElementById("reclamation-form").addEventListener("submit", submitReclamation);
+document.getElementById("close-reclamation-modal").addEventListener("click", closeReclamationModal);
+document.getElementById("cancel-reclamation-btn").addEventListener("click", closeReclamationModal);
 
 const planningUser = Auth.get();
 

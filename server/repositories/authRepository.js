@@ -25,16 +25,16 @@ export async function createUser({ nom, email, motDePasse, role, telephone, adre
     if (role === "eleve") {
       await connection.query(
         `INSERT INTO eleves (id, id_formation, date_inscription)
-         VALUES (?, NULL, CURDATE())`,
-        [result.insertId]
+         VALUES (?, ?, CURDATE())`,
+        [result.insertId, 1]
       );
     }
 
     if (role === "moniteur") {
       await connection.query(
         `INSERT INTO moniteurs (id, id_formation, voiture)
-         VALUES (?, NULL, ?)`,
-        [result.insertId, "Kia Picanto"]
+         VALUES (?, ?, ?)`,
+        [result.insertId, 1, "Kia Picanto"]
       );
     }
 
