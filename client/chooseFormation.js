@@ -1,11 +1,11 @@
 const formationCards = document.querySelectorAll(".plan-card");
       const selectedPrice = document.getElementById("selected-price");
       const selectedFormationLabel = document.getElementById("selected-formation-label");
-      const selectedDelivery = document.getElementById("selected-delivery");
+      const selectedTax = document.getElementById("selected-tax");
       const selectedTotal = document.getElementById("selected-total");
       const walletModalOverlay = document.getElementById("wallet-modal-overlay");
       const walletModalFrame = document.getElementById("wallet-modal-frame");
-      const DELIVERY_FEE = 0;
+      const TAX_RATE = 0.19;
 
       function normalizePrice(rawValue) {
         return Number(String(rawValue).replace(/[^\d]/g, "")) || 0;
@@ -17,11 +17,12 @@ const formationCards = document.querySelectorAll(".plan-card");
 
       function updateSummary(card) {
         const basePrice = normalizePrice(card.dataset.price);
-        const totalPrice = basePrice + DELIVERY_FEE;
-        selectedFormationLabel.textContent = `1 article • ${card.dataset.formation}`;
-        selectedPrice.textContent = formatCurrency(basePrice);
-        selectedDelivery.textContent = formatCurrency(DELIVERY_FEE);
-        selectedTotal.textContent = formatCurrency(totalPrice);
+        const taxAmount = Math.round(basePrice * TAX_RATE);
+        const totalPrice = basePrice + taxAmount;
+          selectedFormationLabel.textContent = `1 article • ${card.dataset.formation}`;
+          selectedPrice.textContent = formatCurrency(basePrice);
+          selectedTax.textContent = formatCurrency(taxAmount);
+          selectedTotal.textContent = formatCurrency(totalPrice);
       }
 
       formationCards.forEach((card) => {
