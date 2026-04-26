@@ -1,5 +1,5 @@
 import { listStudents } from "../repositories/studentRepository.js";
 
-export async function getStudents() {
-  return listStudents();
+export async function getStudents(monitorId) {
+  return listStudents(monitorId);
 }
