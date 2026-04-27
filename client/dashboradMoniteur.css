@@ -304,6 +304,15 @@ body {
   margin-bottom: 12px;
 }
 
+.monitor-booking-history .history-item {
+  cursor: pointer;
+}
+
+.monitor-booking-history .history-item:focus {
+  outline: 2px solid #ffd57a;
+  outline-offset: 2px;
+}
+
 .monitor-booking-location strong,
 .monitor-booking-note strong {
   display: block;
@@ -551,4 +560,14 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ── Fix positionnement des cartes dans le grid ── */
+.exam-card.exam-card-client {
+  position: absolute;
+  z-index: 4;
+}
+
+.exam-grid-body > .monitor-day-column {
+  grid-row: 1;
 }

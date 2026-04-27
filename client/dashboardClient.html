@@ -76,61 +76,14 @@
               <span class="badge badge-primary">Client</span>
             </div>
 
-            <div class="history-list">
-              <article class="history-item">
-                <div class="history-date">
-                  <span>22</span>
-                  <small>Avr 2026</small>
-                </div>
-                <div class="history-content">
-                  <h3>Conduite urbaine</h3>
-                  <p>Emplacement : Centre Ville, Tunis</p>
-                </div>
-                <span class="badge badge-success">Terminee</span>
-              </article>
-
-              <article class="history-item">
-                <div class="history-date">
-                  <span>18</span>
-                  <small>Avr 2026</small>
-                </div>
-                <div class="history-content">
-                  <h3>Stationnement et manoeuvre</h3>
-                  <p>Emplacement : Parking du Lac, Tunis</p>
-                </div>
-                <span class="badge badge-warning">Evaluation</span>
-              </article>
-
-              <article class="history-item">
-                <div class="history-date">
-                  <span>14</span>
-                  <small>Avr 2026</small>
-                </div>
-                <div class="history-content">
-                  <h3>Revision code de la route</h3>
-                  <p>Emplacement : Salle Code EduCar, Ariana</p>
-                </div>
-                <span class="badge badge-muted">Theorie</span>
-              </article>
-
-              <article class="history-item">
-                <div class="history-date">
-                  <span>09</span>
-                  <small>Avr 2026</small>
-                </div>
-                <div class="history-content">
-                  <h3>Conduite sur route rapide</h3>
-                  <p>Emplacement : Route GP9, La Goulette</p>
-                </div>
-                <span class="badge badge-success">Terminee</span>
-              </article>
-            </div>
+            <div class="history-list" id="client-history-list"></div>
           </div>
         </section>
       </main>
     </div>
     <script src="shared.js"></script>
     <script>
+      const BOOKINGS_KEY = "EduCar_client_bookings";
       const user = Auth.get();
       function escapeHtml(value) {
         return String(value ?? "")
@@ -148,6 +101,82 @@
       function getInitialsFromName(name = "") {
         const parts = String(name).trim().split(/\s+/).filter(Boolean);
         return `${parts[0]?.charAt(0) || ""}${parts[1]?.charAt(0) || ""}`.toUpperCase() || "EC";
+      }
+
+      function getStoredBookings() {
+        try {
+          return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function normalizeMonthLabel(date) {
+        const label = date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }).replace(".", "");
+        return label ? label.charAt(0).toUpperCase() + label.slice(1) : label;
+      }
+
+      function parseBookingDateTime(booking) {
+        const time = String(booking.time || "00:00");
+        return new Date(`${booking.date}T${time}:00`);
+      }
+
+      function getUserBookings(bookings, userProfile) {
+        if (!userProfile) return bookings;
+        const userId = userProfile.id ?? userProfile.userId ?? "";
+        const email = String(userProfile.email || "").trim();
+        const phone = String(userProfile.phone || userProfile.telephone || "").trim();
+        const firstName = String(userProfile.firstName || "").trim();
+        const lastName = String(userProfile.lastName || "").trim();
+
+        return bookings.filter((booking) => {
+          if (userId && String(booking.studentId || "") === String(userId)) return true;
+          if (email && String(booking.studentEmail || "").trim() === email) return true;
+          if (phone && String(booking.studentPhone || "").trim() === phone) return true;
+          if (firstName && lastName) {
+            return (
+              String(booking.studentFirstName || "").trim() === firstName &&
+              String(booking.studentLastName || "").trim() === lastName
+            );
+          }
+          return false;
+        });
+      }
+
+      function renderHistory() {
+        const list = document.getElementById("client-history-list");
+        if (!list) return;
+
+        const now = new Date();
+        const bookings = getUserBookings(getStoredBookings(), user)
+          .slice()
+          .sort((a, b) => parseBookingDateTime(b) - parseBookingDateTime(a))
+          .slice(0, 10);
+
+        if (!bookings.length) {
+          list.innerHTML = `<div class="monitor-empty-state">Aucune seance pour le moment.</div>`;
+          return;
+        }
+
+        list.innerHTML = bookings.map((booking) => {
+          const dt = parseBookingDateTime(booking);
+          const day = String(dt.getDate()).padStart(2, "0");
+          const monthLabel = normalizeMonthLabel(dt);
+          const badgeClass = dt < now ? "badge-success" : "badge-primary";
+          const badgeLabel = dt < now ? "Terminee" : "A venir";
+          return `
+            <article class="history-item">
+              <div class="history-date">
+                <span>${day}</span>
+                <small>${escapeHtml(monthLabel)}</small>
+              </div>
+              <div class="history-content">
+                <h3>${escapeHtml(booking.typeLabel || "Seance")}</h3>
+                <p>Emplacement : ${escapeHtml(booking.place || "Non renseigne")}</p>
+              </div>
+              <span class="badge ${badgeClass}">${badgeLabel}</span>
+            </article>`;
+        }).join("");
       }
 
       function renderClientSummary(profile) {
@@ -188,6 +217,18 @@
 
       document.getElementById("client-logout-link").addEventListener("click", function () {
         Auth.clear();
+      });
+
+      renderHistory();
+
+      let storageRefreshTimer = null;
+      window.addEventListener("storage", function (event) {
+        if (event.key !== BOOKINGS_KEY) return;
+        if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+        storageRefreshTimer = setTimeout(() => {
+          storageRefreshTimer = null;
+          renderHistory();
+        }, 50);
       });
     </script>
   </body>

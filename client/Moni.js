@@ -1,384 +1,355 @@
- const BOOKINGS_KEY = "EduCar_client_bookings";
-    const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-    const DAY_START_HOUR = 7;
-    const DAY_END_HOUR = 19;
-    const HOUR_ROW_HEIGHT = 72;
-    let weekCursor = getStartOfWeek(new Date());
-    let selectedBookingId = "";
-    let selectedDayKey = formatDateKey(new Date());
-    let openedCandidateId = "";
+const BOOKINGS_KEY = "EduCar_client_bookings";
+const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const DAY_START_HOUR = 7;
+const DAY_END_HOUR = 19;
+const HOUR_ROW_HEIGHT = 72;
+let weekCursor = getStartOfWeek(new Date());
+let selectedBookingId = "";
+let selectedDayKey = formatDateKey(new Date());
+let openedCandidateId = "";
 
-    function getStoredBookings() {
-      try {
-        return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
-      } catch {
-        return [];
-      }
-    }
+function getStoredBookings() {
+  try { return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]"); }
+  catch { return []; }
+}
+function saveStoredBookings(bookings) {
+  localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+}
+function formatDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+function getStartOfWeek(date) {
+  const out = new Date(date);
+  const off = (out.getDay() + 6) % 7;
+  out.setDate(out.getDate() - off);
+  out.setHours(0,0,0,0);
+  return out;
+}
+function formatWeekRange(startDate) {
+  const end = new Date(startDate);
+  end.setDate(startDate.getDate() + 6);
+  return `${startDate.toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} - ${end.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})}`;
+}
+function formatLongDate(dateKey) {
+  return new Date(`${dateKey}T12:00:00`).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function getBookingId(b) {
+  return encodeURIComponent(`${b.date}_${b.time}_${b.studentId||""}_${b.studentPhone||""}`);
+}
+function escapeHtml(v) {
+  return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+function escapeAttribute(v) { return escapeHtml(v).replace(/`/g,"&#096;"); }
+function getStudentName(b) { return `${b.studentFirstName||"Candidat"} ${b.studentLastName||""}`.trim(); }
+function getStudentKey(b) { return `${b.studentFirstName||""}|${b.studentLastName||""}|${b.studentPhone||""}`; }
+function parseBookingDateTime(b) {
+  const time = String(b.time || "00:00");
+  return new Date(`${b.date}T${time}:00`);
+}
+function formatHistoryMonthLabel(date) {
+  return date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }).replace(".", "");
+}
+function getMapsUrl(b) {
+  if (b.mapsUrl) return b.mapsUrl;
+  if (b.place && b.place.startsWith("http")) return b.place;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.place||"EduCar Tunis")}`;
+}
+function getBookingStartMinutes(b) {
+  const [h="08",m="00"] = String(b.time||"08:00").split(":");
+  return (Number(h) - DAY_START_HOUR) * 60 + Number(m);
+}
+function getBookingDurationMinutes(b) {
+  const dur = String(b.duration||b.typeLabel||"");
+  const match = dur.match(/(\d+(?:[.,]\d+)?)\s*h/i);
+  if (match) return Math.max(45, Number(match[1].replace(",",".")) * 60);
+  return b.typeId === "2h" ? 120 : 60;
+}
+function getBookings() {
+  return getStoredBookings()
+    .map(b => ({...b, _id: getBookingId(b)}))
+    .sort((a,b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
+}
 
-    function saveStoredBookings(bookings) {
-      localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
-    }
+function renderSummary(bookings) {
+  const todayKey = formatDateKey(new Date());
+  const weekEnd  = new Date(weekCursor);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const todayCount = bookings.filter(b => b.date === todayKey).length;
+  const weekCount  = bookings.filter(b => { const d = new Date(`${b.date}T12:00:00`); return d >= weekCursor && d < weekEnd; }).length;
+  const students   = new Set(bookings.map(b => `${b.studentFirstName||""}|${b.studentLastName||""}|${b.studentPhone||""}`));
+  const el = id => document.getElementById(id);
+  if (el("today-count"))   el("today-count").textContent   = todayCount;
+  if (el("week-count"))    el("week-count").textContent    = weekCount;
+  if (el("student-count")) el("student-count").textContent = students.size;
+  el("booking-total-badge").textContent = `${bookings.length} seance${bookings.length>1?"s":""}`;
+}
 
-    function formatDateKey(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    }
+function renderCalendar(bookings) {
+  const weekDates = Array.from({length:7}, (_,i) => {
+    const d = new Date(weekCursor);
+    d.setDate(weekCursor.getDate() + i);
+    return d;
+  });
+  const todayKey = formatDateKey(new Date());
+  const weekEnd  = new Date(weekCursor);
+  weekEnd.setDate(weekEnd.getDate() + 7);
 
-    function getStartOfWeek(date) {
-      const output = new Date(date);
-      const offset = (output.getDay() + 6) % 7;
-      output.setDate(output.getDate() - offset);
-      output.setHours(0, 0, 0, 0);
-      return output;
-    }
+  document.getElementById("week-label").textContent = formatWeekRange(weekCursor);
 
-    function formatWeekRange(startDate) {
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
-      const startLabel = startDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
-      const endLabel = endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-      return `${startLabel} - ${endLabel}`;
-    }
+  // Header
+  document.getElementById("calendar-header").innerHTML =
+    `<div class="monitor-header-spacer"></div>` +
+    weekDates.map((date, i) => {
+      const key    = formatDateKey(date);
+      const active = key === selectedDayKey ? "active-day" : "";
+      const today  = key === todayKey ? "is-today" : "";
+      return `<button class="${active} ${today}" type="button" onclick="selectDay('${key}')">${DAY_NAMES[i]} ${String(date.getDate()).padStart(2,"0")}</button>`;
+    }).join("");
 
-    function formatLongDate(dateKey) {
-      return new Date(`${dateKey}T12:00:00`).toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      });
-    }
+  const grid = document.getElementById("calendar-grid");
+  grid.style.setProperty("--monitor-hour-row",   `${HOUR_ROW_HEIGHT}px`);
+  grid.style.setProperty("--monitor-hour-count", DAY_END_HOUR - DAY_START_HOUR);
 
-    function getBookingId(booking) {
-      return encodeURIComponent(`${booking.date}_${booking.time}_${booking.studentId || ""}_${booking.studentPhone || ""}`);
-    }
+  const weekBookings = bookings.filter(b => {
+    const d = new Date(`${b.date}T12:00:00`);
+    return d >= weekCursor && d < weekEnd;
+  });
 
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
+  // Colonnes jours
+  const dayColumns = weekDates.map((date, i) => {
+    const today = formatDateKey(date) === todayKey ? "is-today" : "";
+    return `<div class="monitor-day-column ${today}" style="grid-column:${i+2}; grid-row:1;"></div>`;
+  }).join("");
 
-    function escapeAttribute(value) {
-      return escapeHtml(value).replace(/`/g, "&#096;");
-    }
+  // Lignes horaires
+  const hourLines = Array.from({length: DAY_END_HOUR - DAY_START_HOUR + 1}, (_, i) => {
+    const hour = DAY_START_HOUR + i;
+    return `
+      <div class="monitor-time-label" style="top:${i*HOUR_ROW_HEIGHT}px">${String(hour).padStart(2,"0")}:00</div>
+      <div class="monitor-hour-line"  style="top:${i*HOUR_ROW_HEIGHT}px"></div>`;
+  }).join("");
 
-    function getStudentName(booking) {
-      return `${booking.studentFirstName || "Candidat"} ${booking.studentLastName || ""}`.trim();
-    }
+  // Ligne maintenant
+  const now    = new Date();
+  const nowMin = (now.getHours() - DAY_START_HOUR) * 60 + now.getMinutes();
+  const showNow = now >= weekCursor && now < weekEnd && nowMin >= 0 && nowMin <= (DAY_END_HOUR - DAY_START_HOUR)*60;
+  const nowLine = showNow ? `<div class="monitor-now-line" style="top:${(nowMin/60)*HOUR_ROW_HEIGHT}px;"></div>` : "";
 
-    function getMapsUrl(booking) {
-      if (booking.mapsUrl) return booking.mapsUrl;
-      if (booking.place && booking.place.startsWith("http")) return booking.place;
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.place || "EduCar Tunis")}`;
-    }
+  // ── Cartes de réservation ────────────────────────────────
+  // Positionnées en absolute directement dans le grid,
+  // avec grid-column pour la bonne colonne et grid-row:1 pour se superposer.
+  const bookingCards = weekBookings.map(b => {
+    const bd       = new Date(`${b.date}T12:00:00`);
+    const dayIndex = Math.round((bd - weekCursor) / 86400000); // 0 = lundi
+    const col      = dayIndex + 2; // grid-column : 2=lundi … 8=dimanche
+    const startMin = Math.max(0, Math.min(getBookingStartMinutes(b), (DAY_END_HOUR - DAY_START_HOUR)*60 - 30));
+    const durMin   = getBookingDurationMinutes(b);
+    const top      = (startMin / 60) * HOUR_ROW_HEIGHT;
+    const height   = Math.max(62, (durMin / 60) * HOUR_ROW_HEIGHT - 10);
+    const selected = b._id === selectedBookingId ? "selected" : "";
 
-    function getBookingStartMinutes(booking) {
-      const [hour = "08", minute = "00"] = String(booking.time || "08:00").split(":");
-      return (Number(hour) - DAY_START_HOUR) * 60 + Number(minute);
-    }
+    return `
+      <article
+        class="exam-card exam-card-client ${selected}"
+        style="grid-column:${col}; grid-row:1; top:${top}px; height:${height}px; width:calc(100% - 12px); margin:0 6px;"
+        onclick="selectBooking('${escapeAttribute(b._id)}','${b.date}')"
+       >
+         <span class="exam-time">${b.time||"--:--"}</span>
+         <button class="exam-candidate-name" type="button" onclick="openCandidateWindow('${escapeAttribute(b._id)}',event)">${escapeHtml(getStudentName(b))}</button>
+       </article>`;
+  }).join("");
 
-    function getBookingDurationMinutes(booking) {
-      const duration = String(booking.duration || booking.typeLabel || "");
-      const hourMatch = duration.match(/(\d+(?:[.,]\d+)?)\s*h/i);
-      if (hourMatch) {
-        return Math.max(45, Number(hourMatch[1].replace(",", ".")) * 60);
-      }
-      return booking.typeId === "2h" ? 120 : 60;
-    }
+  const empty = weekBookings.length ? "" :
+    `<div class="monitor-empty-state monitor-grid-empty">Aucune seance cette semaine.</div>`;
 
-    function getBookings() {
-      return getStoredBookings()
-        .map((booking) => ({ ...booking, _id: getBookingId(booking) }))
-        .sort((a, b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
-    }
+  grid.innerHTML = dayColumns + hourLines + nowLine + bookingCards + empty;
+}
 
-    function renderSummary(bookings) {
-      const todayKey = formatDateKey(new Date());
-      const weekStart = new Date(weekCursor);
-      const weekEnd = new Date(weekCursor);
-      weekEnd.setDate(weekEnd.getDate() + 7);
+function renderSelectedBooking(bookings) {
+  const b     = bookings.find(b => b._id === selectedBookingId);
+  const panel = document.getElementById("selected-booking-panel");
+  if (!b) {
+    panel.innerHTML = `<div class="monitor-empty-state">Selectionnez une seance dans le calendrier.</div>`;
+    return;
+  }
 
-      const todayCount = bookings.filter((booking) => booking.date === todayKey).length;
-      const weekCount = bookings.filter((booking) => {
-        const bookingDate = new Date(`${booking.date}T12:00:00`);
-        return bookingDate >= weekStart && bookingDate < weekEnd;
-      }).length;
-      const students = new Set(bookings.map((booking) => `${booking.studentFirstName || ""}|${booking.studentLastName || ""}|${booking.studentPhone || ""}`));
+  const studentKey = getStudentKey(b);
+  const studentHistory = bookings
+    .filter(item => getStudentKey(item) === studentKey)
+    .slice()
+    .sort((a, b) => parseBookingDateTime(b) - parseBookingDateTime(a))
+    .slice(0, 8);
 
-      const todayCountEl = document.getElementById("today-count");
-      const weekCountEl = document.getElementById("week-count");
-      const studentCountEl = document.getElementById("student-count");
-      if (todayCountEl) todayCountEl.textContent = todayCount;
-      if (weekCountEl) weekCountEl.textContent = weekCount;
-      if (studentCountEl) studentCountEl.textContent = students.size;
-      document.getElementById("booking-total-badge").textContent = `${bookings.length} seance${bookings.length > 1 ? "s" : ""}`;
-    }
+  const now = new Date();
+  const historyHtml = studentHistory.length ? `
+    <div class="monitor-booking-history" style="margin-top:18px;">
+      <strong>Historique de l'eleve</strong>
+      <div class="history-list" style="margin-top:12px;">
+        ${studentHistory.map(item => {
+          const dt = parseBookingDateTime(item);
+          const badgeClass = dt < now ? "badge-success" : "badge-primary";
+          const badgeLabel = dt < now ? "Terminee" : "A venir";
+          const day = String(dt.getDate()).padStart(2,"0");
+          const monthLabel = formatHistoryMonthLabel(dt);
+          return `
+            <article class="history-item" role="button" tabindex="0"
+              onclick="selectBooking('${escapeAttribute(item._id)}','${escapeAttribute(item.date)}')"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectBooking('${escapeAttribute(item._id)}','${escapeAttribute(item.date)}')}"
+            >
+              <div class="history-date">
+                <span>${day}</span>
+                <small>${escapeHtml(monthLabel)}</small>
+              </div>
+              <div class="history-content">
+                <h3>${escapeHtml(item.typeLabel || "Seance")}</h3>
+                <p>Emplacement : ${escapeHtml(item.place || "Non renseigne")}</p>
+              </div>
+              <span class="badge ${badgeClass}">${badgeLabel}</span>
+            </article>`;
+        }).join("")}
+      </div>
+    </div>` : `
+    <div class="monitor-booking-history" style="margin-top:18px;">
+      <strong>Historique de l'eleve</strong>
+      <div class="monitor-empty-state" style="margin-top:12px;">Aucune seance pour le moment.</div>
+    </div>`;
 
-    function renderCalendar(bookings) {
-      const weekDates = Array.from({ length: 7 }, (_, index) => {
-        const date = new Date(weekCursor);
-        date.setDate(weekCursor.getDate() + index);
-        return date;
-      });
+  panel.innerHTML = `
+    <article class="monitor-booking-detail">
+      <h3>${escapeHtml(getStudentName(b))}</h3>
+      <p class="monitor-detail-sub">${formatLongDate(b.date)} a ${b.time}</p>
+      <div class="monitor-booking-meta">
+        <span><strong>Telephone :</strong> ${escapeHtml(b.studentPhone||"Non renseigne")}</span>
+        <span><strong>Email :</strong> ${escapeHtml(b.studentEmail||"Non renseigne")}</span>
+      </div>
+      <div class="monitor-booking-location">
+        <strong>Adresse saisie par le client</strong>
+        <p><a class="planning-place-link" href="${escapeAttribute(getMapsUrl(b))}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.place||"Aucune adresse")}</a></p>
+      </div>
+      <div class="monitor-booking-note">
+        <strong>Note</strong>
+        <p>${escapeHtml(b.note||"Aucune note.")}</p>
+      </div>
+      ${historyHtml}
+      <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking('${b._id}')">Annuler la seance</button>
+    </article>`;
+}
 
-      const todayKey = formatDateKey(new Date());
-      document.getElementById("week-label").textContent = formatWeekRange(weekCursor);
-      document.getElementById("calendar-header").innerHTML = `<div class="monitor-header-spacer"></div>` + weekDates.map((date) => {
-        const key = formatDateKey(date);
-        const active = key === selectedDayKey ? "active-day" : "";
-        const today = key === todayKey ? "is-today" : "";
-        return `<button class="${active} ${today}" type="button" onclick="selectDay('${key}')">${DAY_NAMES[indexOfDate(weekDates, key)]} ${String(date.getDate()).padStart(2, "0")}</button>`;
-      }).join("");
+function renderDayBookings(bookings) {
+  const container   = document.getElementById("day-bookings-list");
+  const dayBookings = bookings.filter(b => b.date === selectedDayKey);
+  if (!dayBookings.length) {
+    container.innerHTML = `<div class="monitor-empty-state">Aucune seance pour ce jour.</div>`;
+    return;
+  }
+  container.innerHTML = dayBookings.map(b => `
+    <button class="monitor-day-item ${b._id===selectedBookingId?"active":""}" type="button" onclick="selectBooking('${b._id}','${b.date}')">
+      <strong>${b.time}</strong>
+      <span>${escapeHtml(getStudentName(b))}</span>
+      <small>${escapeHtml(b.studentPhone||"Non renseigne")}</small>
+    </button>`).join("");
+}
 
-      const grid = document.getElementById("calendar-grid");
-      grid.style.setProperty("--monitor-hour-row", `${HOUR_ROW_HEIGHT}px`);
-      grid.style.setProperty("--monitor-hour-count", DAY_END_HOUR - DAY_START_HOUR);
-      const weekBookings = bookings.filter((booking) => {
-        const bookingDate = new Date(`${booking.date}T12:00:00`);
-        const weekEnd = new Date(weekCursor);
-        weekEnd.setDate(weekEnd.getDate() + 7);
-        return bookingDate >= weekCursor && bookingDate < weekEnd;
-      });
+function renderCandidateWindow(bookings) {
+  const existing = document.getElementById("candidate-popover");
+  if (existing) existing.remove();
+  if (!openedCandidateId) return;
+  const b = bookings.find(b => b._id === openedCandidateId);
+  if (!b) { openedCandidateId = ""; return; }
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="candidate-popover" id="candidate-popover" role="dialog" aria-modal="false" aria-labelledby="candidate-popover-title">
+      <div class="candidate-popover-head">
+        <h2 id="candidate-popover-title">${escapeHtml(getStudentName(b))}</h2>
+        <button type="button" aria-label="Fermer" onclick="closeCandidateWindow(event)">x</button>
+      </div>
+      <dl class="candidate-contact-list">
+        <div><dt>Telephone</dt><dd>${escapeHtml(b.studentPhone||"Non renseigne")}</dd></div>
+        <div><dt>Email</dt><dd>${escapeHtml(b.studentEmail||"Non renseigne")}</dd></div>
+        <div><dt>Adresse</dt><dd><a href="${escapeAttribute(getMapsUrl(b))}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.place||"Non renseignee")}</a></dd></div>
+      </dl>
+    </div>`);
+}
 
-      const hourLines = Array.from({ length: DAY_END_HOUR - DAY_START_HOUR + 1 }, (_, index) => {
-        const hour = DAY_START_HOUR + index;
-        return `
-          <div class="monitor-time-label" style="top:${index * HOUR_ROW_HEIGHT}px">${String(hour).padStart(2, "0")}:00</div>
-          <div class="monitor-hour-line" style="top:${index * HOUR_ROW_HEIGHT}px"></div>
-        `;
-      }).join("");
-      const dayColumns = weekDates.map((date, index) => {
-        const today = formatDateKey(date) === todayKey ? "is-today" : "";
-        return `<div class="monitor-day-column ${today}" style="grid-column:${index + 2};"></div>`;
-      }).join("");
+function selectDay(dayKey) {
+  selectedDayKey = dayKey;
+  const dayBookings = getBookings().filter(b => b.date === dayKey);
+  if (dayBookings.length && !dayBookings.some(b => b._id === selectedBookingId)) {
+    selectedBookingId = dayBookings[0]._id;
+  }
+  renderAll();
+}
+function selectBooking(bookingId, dayKey) {
+  selectedBookingId = bookingId;
+  selectedDayKey    = dayKey;
+  renderAll();
+}
+function openCandidateWindow(bookingId, event) {
+  if (event) event.stopPropagation();
+  openedCandidateId = openedCandidateId === bookingId ? "" : bookingId;
+  selectedBookingId = bookingId;
+  const b = getBookings().find(b => b._id === bookingId);
+  if (b) selectedDayKey = b.date;
+  renderAll();
+}
+function closeCandidateWindow(event) {
+  if (event) event.stopPropagation();
+  openedCandidateId = "";
+  renderAll();
+}
+function cancelBooking(bookingId) {
+  const bookings = getStoredBookings().filter(b => getBookingId(b) !== bookingId);
+  saveStoredBookings(bookings);
+  const hydrated = getBookings();
+  if (!hydrated.some(b => b._id === selectedBookingId)) selectedBookingId = hydrated[0]?._id || "";
+  renderAll();
+  Toast.success("Seance annulee.");
+}
 
-      const now = new Date();
-      const showNowLine = now >= weekCursor && now < new Date(weekCursor.getFullYear(), weekCursor.getMonth(), weekCursor.getDate() + 7);
-      const nowMinutes = (now.getHours() - DAY_START_HOUR) * 60 + now.getMinutes();
-      const nowLine = showNowLine && nowMinutes >= 0 && nowMinutes <= (DAY_END_HOUR - DAY_START_HOUR) * 60
-        ? `<div class="monitor-now-line" style="top:${(nowMinutes / 60) * HOUR_ROW_HEIGHT}px"></div>`
-        : "";
+function renderAll() {
+  const bookings = getBookings();
+  const weekEnd  = new Date(weekCursor);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekBookings = bookings.filter(b => {
+    const d = new Date(`${b.date}T12:00:00`);
+    return d >= weekCursor && d < weekEnd;
+  });
+  const selDate = new Date(`${selectedDayKey}T12:00:00`);
+  if (selDate < weekCursor || selDate >= weekEnd) selectedDayKey = formatDateKey(weekCursor);
+  if (!weekBookings.some(b => b._id === selectedBookingId)) {
+    selectedBookingId = weekBookings.find(b => b.date === selectedDayKey)?._id || weekBookings[0]?._id || "";
+  }
+  renderSummary(bookings);
+  renderCalendar(bookings);
+  renderSelectedBooking(bookings);
+  renderDayBookings(bookings);
+  renderCandidateWindow(bookings);
+}
 
-      const bookingCards = weekBookings.map((booking) => {
-        const bookingDate = new Date(`${booking.date}T12:00:00`);
-        const dayIndex = Math.round((bookingDate - weekCursor) / 86400000) + 1;
-        const startMinutes = Math.max(0, Math.min(getBookingStartMinutes(booking), (DAY_END_HOUR - DAY_START_HOUR) * 60 - 30));
-        const durationMinutes = getBookingDurationMinutes(booking);
-        const top = (startMinutes / 60) * HOUR_ROW_HEIGHT;
-        const height = Math.max(62, (durationMinutes / 60) * HOUR_ROW_HEIGHT - 10);
-        const selected = booking._id === selectedBookingId ? "selected" : "";
-        const mapsUrl = escapeAttribute(getMapsUrl(booking));
-        const place = escapeHtml(booking.place || "Adresse non renseignee");
-        const studentName = escapeHtml(getStudentName(booking));
+document.getElementById("prev-week-btn").addEventListener("click", () => {
+  weekCursor.setDate(weekCursor.getDate() - 7);
+  selectedDayKey = formatDateKey(weekCursor); selectedBookingId = ""; renderAll();
+});
+document.getElementById("next-week-btn").addEventListener("click", () => {
+  weekCursor.setDate(weekCursor.getDate() + 7);
+  selectedDayKey = formatDateKey(weekCursor); selectedBookingId = ""; renderAll();
+});
 
-        return `
-          <article
-            class="exam-card exam-card-client ${selected}"
-            style="grid-column:${dayIndex + 1}; top:${top}px; height:${height}px;"
-            onclick="selectBooking('${escapeAttribute(booking._id)}', '${booking.date}')"
-          >
-            <span class="exam-time">${booking.time || "--:--"}</span>
-            <a class="exam-location-link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${place}</a>
-            <button class="exam-candidate-name" type="button" onclick="openCandidateWindow('${escapeAttribute(booking._id)}', event)">${studentName}</button>
-          </article>
-        `;
-      }).join("");
+const monitorUser = Auth.get() || {};
+if (monitorUser.firstName || monitorUser.lastName) {
+  const el = document.getElementById("monitor-name-label");
+  if (el) el.textContent = `${monitorUser.firstName||""} ${monitorUser.lastName||""}`.trim();
+}
+if (monitorUser.formation) {
+  const el = document.getElementById("monitor-formation-badge");
+  if (el) el.textContent = monitorUser.formation;
+}
+document.getElementById("monitor-logout-link").addEventListener("click", () => Auth.clear());
 
-      const emptyState = weekBookings.length
-        ? ""
-        : `<div class="monitor-empty-state monitor-grid-empty">Aucune seance dans cette semaine.</div>`;
+renderAll();
 
-      grid.innerHTML = dayColumns + hourLines + nowLine + bookingCards + emptyState;
-    }
-
-    function indexOfDate(weekDates, key) {
-      return weekDates.findIndex((date) => formatDateKey(date) === key);
-    }
-
-    function selectDay(dayKey) {
-      selectedDayKey = dayKey;
-      const dayBookings = getBookings().filter((booking) => booking.date === dayKey);
-      if (dayBookings.length && !dayBookings.some((booking) => booking._id === selectedBookingId)) {
-        selectedBookingId = dayBookings[0]._id;
-      }
-      renderAll();
-    }
-
-    function selectBooking(bookingId, dayKey) {
-      selectedBookingId = bookingId;
-      selectedDayKey = dayKey;
-      renderAll();
-    }
-
-    function openCandidateWindow(bookingId, event) {
-      if (event) event.stopPropagation();
-      openedCandidateId = openedCandidateId === bookingId ? "" : bookingId;
-      selectedBookingId = bookingId;
-      const booking = getBookings().find((item) => item._id === bookingId);
-      if (booking) selectedDayKey = booking.date;
-      renderAll();
-    }
-
-    function closeCandidateWindow(event) {
-      if (event) event.stopPropagation();
-      openedCandidateId = "";
-      renderAll();
-    }
-
-    function renderSelectedBooking(bookings) {
-      const selectedBooking = bookings.find((booking) => booking._id === selectedBookingId);
-      const panel = document.getElementById("selected-booking-panel");
-
-      if (!selectedBooking) {
-        panel.innerHTML = `<div class="monitor-empty-state">Selectionnez une seance dans le calendrier.</div>`;
-        return;
-      }
-
-      panel.innerHTML = `
-        <article class="monitor-booking-detail">
-          <h3>${escapeHtml(getStudentName(selectedBooking))}</h3>
-          <p class="monitor-detail-sub">${formatLongDate(selectedBooking.date)} a ${selectedBooking.time}</p>
-          <div class="monitor-booking-meta">
-            <span><strong>Telephone :</strong> ${escapeHtml(selectedBooking.studentPhone || "Non renseigne")}</span>
-            <span><strong>Email :</strong> ${escapeHtml(selectedBooking.studentEmail || "Non renseigne")}</span>
-          </div>
-          <div class="monitor-booking-location">
-            <strong>Adresse saisie par le client</strong>
-            <p><a class="planning-place-link" href="${escapeAttribute(getMapsUrl(selectedBooking))}" target="_blank" rel="noopener noreferrer">${escapeHtml(selectedBooking.place || "Aucune adresse renseignee")}</a></p>
-          </div>
-          <div class="monitor-booking-note">
-            <strong>Note</strong>
-            <p>${escapeHtml(selectedBooking.note || "Aucune note.")}</p>
-          </div>
-          <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking('${selectedBooking._id}')">Annuler la seance</button>
-        </article>
-      `;
-    }
-
-    function renderDayBookings(bookings) {
-      const container = document.getElementById("day-bookings-list");
-      const dayBookings = bookings.filter((booking) => booking.date === selectedDayKey);
-
-      if (!dayBookings.length) {
-        container.innerHTML = `<div class="monitor-empty-state">Aucune seance pour ce jour.</div>`;
-        return;
-      }
-
-      container.innerHTML = dayBookings.map((booking) => `
-        <button class="monitor-day-item ${booking._id === selectedBookingId ? "active" : ""}" type="button" onclick="selectBooking('${booking._id}', '${booking.date}')">
-          <strong>${booking.time}</strong>
-          <span>${escapeHtml(getStudentName(booking))}</span>
-          <small>${escapeHtml(booking.studentPhone || "Non renseigne")}</small>
-        </button>
-      `).join("");
-    }
-
-    function renderCandidateWindow(bookings) {
-      const existing = document.getElementById("candidate-popover");
-      if (existing) existing.remove();
-      if (!openedCandidateId) return;
-
-      const booking = bookings.find((item) => item._id === openedCandidateId);
-      if (!booking) {
-        openedCandidateId = "";
-        return;
-      }
-
-      document.body.insertAdjacentHTML("beforeend", `
-        <div class="candidate-popover" id="candidate-popover" role="dialog" aria-modal="false" aria-labelledby="candidate-popover-title">
-          <div class="candidate-popover-head">
-            <h2 id="candidate-popover-title">${escapeHtml(getStudentName(booking))}</h2>
-            <button type="button" aria-label="Fermer" onclick="closeCandidateWindow(event)">x</button>
-          </div>
-          <dl class="candidate-contact-list">
-            <div><dt>Telephone</dt><dd>${escapeHtml(booking.studentPhone || "Non renseigne")}</dd></div>
-            <div><dt>Email</dt><dd>${escapeHtml(booking.studentEmail || "Non renseigne")}</dd></div>
-            <div><dt>Adresse</dt><dd><a href="${escapeAttribute(getMapsUrl(booking))}" target="_blank" rel="noopener noreferrer">${escapeHtml(booking.place || "Non renseignee")}</a></dd></div>
-          </dl>
-        </div>
-      `);
-    }
-
-    function cancelBooking(bookingId) {
-      const bookings = getStoredBookings().filter((booking) => getBookingId(booking) !== bookingId);
-      saveStoredBookings(bookings);
-      const hydrated = getBookings();
-      if (!hydrated.some((booking) => booking._id === selectedBookingId)) {
-        selectedBookingId = hydrated[0]?._id || "";
-      }
-      renderAll();
-      Toast.success("Seance annulee.");
-    }
-
-    function renderAll() {
-      const bookings = getBookings();
-      const weekBookings = bookings.filter((booking) => {
-        const bookingDate = new Date(`${booking.date}T12:00:00`);
-        const weekEnd = new Date(weekCursor);
-        weekEnd.setDate(weekEnd.getDate() + 7);
-        return bookingDate >= weekCursor && bookingDate < weekEnd;
-      });
-
-      const selectedDate = new Date(`${selectedDayKey}T12:00:00`);
-      const weekEnd = new Date(weekCursor);
-      weekEnd.setDate(weekEnd.getDate() + 7);
-
-      if (selectedDate < weekCursor || selectedDate >= weekEnd) {
-        selectedDayKey = formatDateKey(weekCursor);
-      }
-      if (!weekBookings.some((booking) => booking._id === selectedBookingId)) {
-        selectedBookingId = weekBookings.find((booking) => booking.date === selectedDayKey)?._id || weekBookings[0]?._id || "";
-      }
-
-      renderSummary(bookings);
-      renderCalendar(bookings);
-      renderSelectedBooking(bookings);
-      renderDayBookings(bookings);
-      renderCandidateWindow(bookings);
-    }
-
-    document.getElementById("prev-week-btn").addEventListener("click", function () {
-      weekCursor.setDate(weekCursor.getDate() - 7);
-      selectedDayKey = formatDateKey(weekCursor);
-      selectedBookingId = "";
-      renderAll();
-    });
-
-    document.getElementById("next-week-btn").addEventListener("click", function () {
-      weekCursor.setDate(weekCursor.getDate() + 7);
-      selectedDayKey = formatDateKey(weekCursor);
-      selectedBookingId = "";
-      renderAll();
-    });
-
-    const monitorUser = Auth.get() || {};
-    if (monitorUser && (monitorUser.firstName || monitorUser.lastName)) {
-      const monitorNameLabel = document.getElementById("monitor-name-label");
-      if (monitorNameLabel) monitorNameLabel.textContent = `${monitorUser.firstName || ""} ${monitorUser.lastName || ""}`.trim();
-    }
-    if (monitorUser && monitorUser.formation) {
-      document.getElementById("monitor-formation-badge").textContent = monitorUser.formation;
-    }
-
-     document.getElementById("monitor-logout-link").addEventListener("click", function () {
-       Auth.clear();
-     });
-
-     renderAll();
-
-     let storageRefreshTimer = null;
-     window.addEventListener("storage", function (event) {
-       if (event.key !== BOOKINGS_KEY) return;
-       if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
-       storageRefreshTimer = setTimeout(() => {
-         storageRefreshTimer = null;
-         renderAll();
-       }, 50);
-     });
+let storageRefreshTimer = null;
+window.addEventListener("storage", event => {
+  if (event.key !== BOOKINGS_KEY) return;
+  if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+  storageRefreshTimer = setTimeout(() => { storageRefreshTimer = null; renderAll(); }, 50);
+});
