@@ -7,6 +7,7 @@ let weekCursor = getStartOfWeek(new Date());
 let selectedBookingId = "";
 let selectedDayKey = formatDateKey(new Date());
 let openedCandidateId = "";
+let apiBookingsCache = null;
 
 function getStoredBookings() {
   try { return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]"); }
@@ -14,6 +15,49 @@ function getStoredBookings() {
 }
 function saveStoredBookings(bookings) {
   localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+}
+function isApiMode() {
+  const user = Auth.get();
+  return Boolean(user && Auth.getToken() && user.role === "moniteur");
+}
+function getMapsUrlFromPlace(place, mapsUrl) {
+  if (mapsUrl) return mapsUrl;
+  const value = String(place || "").trim();
+  if (!value) return "https://www.google.com/maps/search/?api=1&query=EduCar%20Tunis";
+  if (value.startsWith("http")) return value;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+}
+function toMonitorBooking(raw) {
+  const date = raw.date || (raw.date_lecon ? String(raw.date_lecon).slice(0, 10) : "");
+  const time = raw.time || (raw.date_lecon ? String(raw.date_lecon).slice(11, 16) : "");
+  const durationMinutes = Number(raw.duree_minutes ?? raw.dureeMinutes ?? 60);
+  const duration = durationMinutes % 60 === 0 ? `${durationMinutes / 60}h` : `${durationMinutes} min`;
+  const place = raw.adresse_depart ?? raw.adresseDepart ?? raw.place ?? "";
+
+  return {
+    id: raw.id,
+    _id: String(raw.id ?? ""),
+    date,
+    time,
+    statut: raw.statut,
+    duree_minutes: durationMinutes,
+    duration,
+    typeId: raw.typeId || (durationMinutes >= 120 ? "2h" : "1h"),
+    typeLabel: raw.typeLabel || (durationMinutes >= 120 ? "2 heures" : "1 heure"),
+    place,
+    mapsUrl: getMapsUrlFromPlace(place, raw.mapsUrl),
+    note: raw.notes_moniteur ?? raw.note ?? "",
+    studentId: raw.eleve_id ?? raw.studentId,
+    studentFirstName: raw.eleve_nom ? String(raw.eleve_nom).split(" ")[0] : raw.studentFirstName,
+    studentLastName: raw.eleve_nom ? String(raw.eleve_nom).split(" ").slice(1).join(" ") : raw.studentLastName,
+    studentPhone: raw.eleve_telephone ?? raw.studentPhone,
+    studentEmail: raw.eleve_email ?? raw.studentEmail
+  };
+}
+async function refreshApiBookings() {
+  if (!isApiMode()) return;
+  const rows = await Api.get("/bookings/me");
+  apiBookingsCache = Array.isArray(rows) ? rows : [];
 }
 function formatDateKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
@@ -34,6 +78,7 @@ function formatLongDate(dateKey) {
   return new Date(`${dateKey}T12:00:00`).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 }
 function getBookingId(b) {
+  if (b && (b.id !== undefined && b.id !== null) && String(b.id) !== "") return String(b.id);
   return encodeURIComponent(`${b.date}_${b.time}_${b.studentId||""}_${b.studentPhone||""}`);
 }
 function escapeHtml(v) {
@@ -59,12 +104,23 @@ function getBookingStartMinutes(b) {
   return (Number(h) - DAY_START_HOUR) * 60 + Number(m);
 }
 function getBookingDurationMinutes(b) {
+  const minutes = Number(b?.duree_minutes ?? b?.dureeMinutes ?? NaN);
+  if (Number.isFinite(minutes) && minutes > 0) return minutes;
   const dur = String(b.duration||b.typeLabel||"");
   const match = dur.match(/(\d+(?:[.,]\d+)?)\s*h/i);
   if (match) return Math.max(45, Number(match[1].replace(",",".")) * 60);
   return b.typeId === "2h" ? 120 : 60;
 }
 function getBookings() {
+  if (isApiMode()) {
+    const source = Array.isArray(apiBookingsCache) ? apiBookingsCache : [];
+    return source
+      .map(toMonitorBooking)
+      .filter((b) => b.statut !== "annulee")
+      .filter((b) => b.date && b.time && b._id)
+      .sort((a, b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
+  }
+
   return getStoredBookings()
     .map(b => ({...b, _id: getBookingId(b)}))
     .sort((a,b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
@@ -115,10 +171,37 @@ function renderCalendar(bookings) {
     return d >= weekCursor && d < weekEnd;
   });
 
-  // Colonnes jours
+  const totalHeight = (DAY_END_HOUR - DAY_START_HOUR) * HOUR_ROW_HEIGHT;
+
+  // ── Colonnes jours — chacune est position:relative pour contenir ses cartes ──
   const dayColumns = weekDates.map((date, i) => {
-    const today = formatDateKey(date) === todayKey ? "is-today" : "";
-    return `<div class="monitor-day-column ${today}" style="grid-column:${i+2}; grid-row:1;"></div>`;
+    const dateKey    = formatDateKey(date);
+    const todayCls   = dateKey === todayKey ? "is-today" : "";
+    const colBookings = weekBookings.filter(b => b.date === dateKey);
+
+    const cards = colBookings.map(b => {
+      const startMin = Math.max(0, Math.min(getBookingStartMinutes(b), (DAY_END_HOUR - DAY_START_HOUR) * 60 - 30));
+      const durMin   = getBookingDurationMinutes(b);
+      const top      = (startMin / 60) * HOUR_ROW_HEIGHT;
+      const height   = Math.max(62, (durMin / 60) * HOUR_ROW_HEIGHT - 10);
+      const selected = b._id === selectedBookingId ? "selected" : "";
+
+      return `
+        <article
+          class="exam-card exam-card-client ${selected}"
+          style="position:absolute; top:${top}px; height:${height}px; left:6px; right:6px; width:auto; margin:0; box-sizing:border-box;"
+          onclick="selectBooking('${escapeAttribute(b._id)}','${b.date}')"
+        >
+          <span class="exam-time">${b.time||"--:--"}</span>
+          <button class="exam-candidate-name" type="button" onclick="openCandidateWindow('${escapeAttribute(b._id)}',event)">${escapeHtml(getStudentName(b))}</button>
+        </article>`;
+    }).join("");
+
+    return `
+      <div
+        class="monitor-day-column ${todayCls}"
+        style="grid-column:${i+2}; grid-row:1; position:relative; height:${totalHeight}px; overflow:hidden;"
+      >${cards}</div>`;
   }).join("");
 
   // Lignes horaires
@@ -135,34 +218,10 @@ function renderCalendar(bookings) {
   const showNow = now >= weekCursor && now < weekEnd && nowMin >= 0 && nowMin <= (DAY_END_HOUR - DAY_START_HOUR)*60;
   const nowLine = showNow ? `<div class="monitor-now-line" style="top:${(nowMin/60)*HOUR_ROW_HEIGHT}px;"></div>` : "";
 
-  // ── Cartes de réservation ────────────────────────────────
-  // Positionnées en absolute directement dans le grid,
-  // avec grid-column pour la bonne colonne et grid-row:1 pour se superposer.
-  const bookingCards = weekBookings.map(b => {
-    const bd       = new Date(`${b.date}T12:00:00`);
-    const dayIndex = Math.round((bd - weekCursor) / 86400000); // 0 = lundi
-    const col      = dayIndex + 2; // grid-column : 2=lundi … 8=dimanche
-    const startMin = Math.max(0, Math.min(getBookingStartMinutes(b), (DAY_END_HOUR - DAY_START_HOUR)*60 - 30));
-    const durMin   = getBookingDurationMinutes(b);
-    const top      = (startMin / 60) * HOUR_ROW_HEIGHT;
-    const height   = Math.max(62, (durMin / 60) * HOUR_ROW_HEIGHT - 10);
-    const selected = b._id === selectedBookingId ? "selected" : "";
-
-    return `
-      <article
-        class="exam-card exam-card-client ${selected}"
-        style="grid-column:${col}; grid-row:1; top:${top}px; height:${height}px; width:calc(100% - 12px); margin:0 6px;"
-        onclick="selectBooking('${escapeAttribute(b._id)}','${b.date}')"
-       >
-         <span class="exam-time">${b.time||"--:--"}</span>
-         <button class="exam-candidate-name" type="button" onclick="openCandidateWindow('${escapeAttribute(b._id)}',event)">${escapeHtml(getStudentName(b))}</button>
-       </article>`;
-  }).join("");
-
   const empty = weekBookings.length ? "" :
     `<div class="monitor-empty-state monitor-grid-empty">Aucune seance cette semaine.</div>`;
 
-  grid.innerHTML = dayColumns + hourLines + nowLine + bookingCards + empty;
+  grid.innerHTML = dayColumns + hourLines + nowLine + empty;
 }
 
 function renderSelectedBooking(bookings) {
@@ -297,6 +356,19 @@ function closeCandidateWindow(event) {
   renderAll();
 }
 function cancelBooking(bookingId) {
+  if (isApiMode()) {
+    Api.delete(`/bookings/${bookingId}`)
+      .then(async () => {
+        await refreshApiBookings();
+        const hydrated = getBookings();
+        if (!hydrated.some(b => b._id === selectedBookingId)) selectedBookingId = hydrated[0]?._id || "";
+        renderAll();
+        Toast.success("Seance annulee.");
+      })
+      .catch((error) => Toast.error(error.message));
+    return;
+  }
+
   const bookings = getStoredBookings().filter(b => getBookingId(b) !== bookingId);
   saveStoredBookings(bookings);
   const hydrated = getBookings();
@@ -345,11 +417,35 @@ if (monitorUser.formation) {
 }
 document.getElementById("monitor-logout-link").addEventListener("click", () => Auth.clear());
 
-renderAll();
+async function initializeMonitorDashboard() {
+  if (isApiMode()) {
+    try {
+      await refreshApiBookings();
+    } catch (error) {
+      Toast.error(error.message || "Impossible de charger les seances.");
+    }
 
-let storageRefreshTimer = null;
-window.addEventListener("storage", event => {
-  if (event.key !== BOOKINGS_KEY) return;
-  if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
-  storageRefreshTimer = setTimeout(() => { storageRefreshTimer = null; renderAll(); }, 50);
-});
+    renderAll();
+
+    window.setInterval(() => {
+      refreshApiBookings().then(renderAll).catch(() => {});
+    }, 5000);
+
+    window.addEventListener("focus", () => {
+      refreshApiBookings().then(renderAll).catch(() => {});
+    });
+
+    return;
+  }
+
+  renderAll();
+
+  let storageRefreshTimer = null;
+  window.addEventListener("storage", event => {
+    if (event.key !== BOOKINGS_KEY) return;
+    if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+    storageRefreshTimer = setTimeout(() => { storageRefreshTimer = null; renderAll(); }, 50);
+  });
+}
+
+initializeMonitorDashboard();

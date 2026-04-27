@@ -85,6 +85,53 @@ function saveStoredBookings(bookings) {
   localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
 }
 
+let upcomingBookingsCache = [];
+
+function hasApiSession() {
+  const user = Auth.get();
+  return Boolean(user && Auth.getToken() && user.role === "eleve");
+}
+
+function getMapsUrlFromPlace(place, mapsUrl) {
+  if (mapsUrl) return mapsUrl;
+  const value = String(place || "").trim();
+  if (!value) return "https://www.google.com/maps/search/?api=1&query=EduCar%20Tunis";
+  if (value.startsWith("http")) return value;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+}
+
+function toUpcomingBooking(raw) {
+  const date = raw.date || (raw.date_lecon ? String(raw.date_lecon).slice(0, 10) : "");
+  const time = raw.time || (raw.date_lecon ? String(raw.date_lecon).slice(11, 16) : "");
+  const durationMinutes = Number(raw.duree_minutes ?? raw.dureeMinutes ?? 60);
+  const duration = durationMinutes % 60 === 0 ? `${durationMinutes / 60}h` : `${durationMinutes} min`;
+  const place = raw.adresse_depart ?? raw.adresseDepart ?? raw.place ?? "";
+  const mapsUrl = getMapsUrlFromPlace(place, raw.mapsUrl);
+
+  return {
+    serverId: raw.id ?? raw.serverId ?? null,
+    date,
+    time,
+    duration,
+    typeId: raw.typeId || (durationMinutes >= 120 ? "2h" : "1h"),
+    typeLabel: raw.typeLabel || (durationMinutes >= 120 ? "2 heures" : "1 heure"),
+    place,
+    mapsUrl,
+    note: raw.notes_moniteur ?? raw.note ?? ""
+  };
+}
+
+async function getUpcomingBookings() {
+  if (!hasApiSession()) {
+    return getStoredBookings();
+  }
+
+  const rows = await Api.get("/bookings/me");
+  return Array.isArray(rows)
+    ? rows.filter((row) => row.statut !== "annulee").map(toUpcomingBooking)
+    : [];
+}
+
 function getMonitorProfile() {
   try {
     const storedProfile = JSON.parse(localStorage.getItem(MONITOR_PROFILE_KEY) || "null");
@@ -320,9 +367,11 @@ function renderSelectedDateSummary() {
   //helper.innerHTML = `${SESSION_TYPES.find((item) => item.id === selectedTypeId).label} selectionnee. Choisissez maintenant une heure.<br><a class="planning-place-link" href="${SESSION_TYPES.find((item) => item.id === selectedTypeId).mapsUrl}" target="_blank" rel="noopener noreferrer">Voir le lieu de rencontre sur Google Maps</a>`;
 }
 
-function renderUpcomingBookings() {
-  const bookings = getStoredBookings()
+async function renderUpcomingBookings() {
+  const bookings = (await getUpcomingBookings())
+    .slice()
     .sort((a, b) => new Date(`${a.date}T${a.time}:00`) - new Date(`${b.date}T${b.time}:00`));
+  upcomingBookingsCache = bookings;
   const container = document.getElementById("upcoming-bookings");
   const badge = document.getElementById("booking-count-badge");
   badge.textContent = `${bookings.length} reservation${bookings.length > 1 ? "s" : ""}`;
@@ -334,6 +383,7 @@ function renderUpcomingBookings() {
 
   container.innerHTML = bookings.map((booking, index) => {
     const date = new Date(`${booking.date}T12:00:00`);
+    const cancelArg = hasApiSession() && booking.serverId ? booking.serverId : index;
     return `
       <article class="planning-upcoming-item">
         <div class="planning-upcoming-date">
@@ -348,7 +398,7 @@ function renderUpcomingBookings() {
         </div>
         <div class="planning-upcoming-actions">
           <button class="btn btn-outline btn-sm" type="button" onclick="openReclamationModal(${index})">Reclamer</button>
-          <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking(${index})">Annuler</button>
+          <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking(${cancelArg})">Annuler</button>
         </div>
       </article>
     `;
@@ -408,13 +458,42 @@ async function confirmBooking() {
   const selectedType = SESSION_TYPES.find((item) => item.id === selectedTypeId);
   const meetingAddress = document.getElementById("meeting-address").value.trim();
   const note = document.getElementById("booking-note").value.trim();
-  const bookings = getStoredBookings();
 
   if (!meetingAddress) {
     Toast.error("Ajoutez un lieu de rencontre.");
     return;
   }
 
+  if (hasApiSession()) {
+    const unavailableReason = getSlotUnavailableReason(selectedDateKey, selectedSlot);
+    if (unavailableReason) {
+      Toast.error(unavailableReason === "Deja reserve" ? "Ce creneau est deja reserve." : unavailableReason);
+      return;
+    }
+
+    try {
+      await Api.post("/bookings", {
+        date: selectedDateKey,
+        time: selectedSlot,
+        typeId: selectedType.id,
+        duration: selectedType.duration,
+        place: meetingAddress,
+        note
+      });
+    } catch (error) {
+      Toast.error(error.message || "Impossible d'enregistrer la seance.");
+      return;
+    }
+
+    await loadServerBookings();
+    await renderUpcomingBookings();
+    renderSlots();
+    Toast.success(`Reservation confirmee pour le ${new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString("fr-FR")} a ${selectedSlot}.`);
+    resetBookingSelection();
+    return;
+  }
+
+  const bookings = getStoredBookings();
   const alreadyTaken = bookings.some((booking) =>
     booking.date === selectedDateKey &&
     booking.time === selectedSlot &&
@@ -459,23 +538,30 @@ async function confirmBooking() {
 
   bookings.push(bookingPayload);
   saveStoredBookings(bookings);
-  serverBookings.push({
-    id: bookingPayload.serverId,
-    date: bookingPayload.date,
-    time: bookingPayload.time,
-    statut: "confirmee"
-  });
-  renderUpcomingBookings();
+  await renderUpcomingBookings();
   renderSlots();
   Toast.success(`Reservation confirmee pour le ${new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString("fr-FR")} a ${selectedSlot}.`);
   resetBookingSelection();
 }
 
-function cancelBooking(index) {
+async function cancelBooking(indexOrServerId) {
+  if (hasApiSession()) {
+    try {
+      await Api.delete(`/bookings/${indexOrServerId}`);
+      await loadServerBookings();
+      await renderUpcomingBookings();
+      renderSlots();
+      Toast.success("Reservation annulee.");
+    } catch (error) {
+      Toast.error(error.message);
+    }
+    return;
+  }
+
   const bookings = getStoredBookings();
-  bookings.splice(index, 1);
+  bookings.splice(indexOrServerId, 1);
   saveStoredBookings(bookings);
-  renderUpcomingBookings();
+  await renderUpcomingBookings();
   Toast.success("Reservation annulee.");
 }
 
@@ -517,7 +603,7 @@ function readAttachment(file) {
 
 async function submitReclamation(event) {
   event.preventDefault();
-  const bookings = getStoredBookings();
+  const bookings = upcomingBookingsCache.length ? upcomingBookingsCache : getStoredBookings();
   const booking = bookings[selectedReclamationIndex];
   const reason = document.getElementById("reclamation-reason").value.trim();
   const file = document.getElementById("reclamation-file").files[0];
@@ -540,7 +626,7 @@ async function submitReclamation(event) {
     const attachment = await readAttachment(file);
     await Api.post("/reclamations", {
       utilisateurId: planningUser?.id,
-      reservationRef: booking ? `${booking.date} ${booking.time}` : "Coordonnees moniteur",
+      reservationRef: booking ? (booking.serverId ? `booking#${booking.serverId}` : `${booking.date} ${booking.time}`) : "Coordonnees moniteur",
       raison: reason,
       ...attachment
     });
@@ -585,7 +671,7 @@ async function initializePlanning() {
   document.getElementById("meeting-address").value = SESSION_TYPES[0].place;
   renderSelectedDateSummary();
   renderSlots();
-  renderUpcomingBookings();
+  await renderUpcomingBookings();
 }
 
 initializePlanning();

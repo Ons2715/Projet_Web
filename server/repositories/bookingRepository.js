@@ -20,6 +20,27 @@ export async function listBookings() {
   return rows;
 }
 
+export async function listBookingsByStudent(studentId) {
+  const [rows] = await pool.query(
+    `${BOOKING_SELECT} WHERE s.eleve_id = ? ORDER BY s.date_lecon ASC`,
+    [studentId]
+  );
+  return rows;
+}
+
+export async function listBookingsByMonitor(monitorId) {
+  const [rows] = await pool.query(
+    `${BOOKING_SELECT} WHERE s.moniteur_id = ? ORDER BY s.date_lecon ASC`,
+    [monitorId]
+  );
+  return rows;
+}
+
+export async function findBookingById(id) {
+  const [rows] = await pool.query(`${BOOKING_SELECT} WHERE s.id = ?`, [id]);
+  return rows[0] || null;
+}
+
 export async function findAssignedMonitorIdForStudent(studentId) {
   const [rows] = await pool.query(
     `SELECT m.id
@@ -43,4 +64,9 @@ export async function createBooking({ eleveId, moniteurId, dateLecon, dureeMinut
 
   const [rows] = await pool.query(`${BOOKING_SELECT} WHERE s.id = ?`, [result.insertId]);
   return rows[0] || null;
+}
+
+export async function updateBookingStatus(id, statut) {
+  await pool.query(`UPDATE seances SET statut = ? WHERE id = ?`, [statut, id]);
+  return findBookingById(id);
 }

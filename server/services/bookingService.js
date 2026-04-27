@@ -1,7 +1,35 @@
-import { createBooking, findAssignedMonitorIdForStudent, listBookings } from "../repositories/bookingRepository.js";
+import {
+  createBooking,
+  findAssignedMonitorIdForStudent,
+  listBookings,
+  listBookingsByMonitor,
+  listBookingsByStudent,
+  updateBookingStatus,
+  findBookingById
+} from "../repositories/bookingRepository.js";
 
 export async function getBookings() {
   return listBookings();
+}
+
+export async function getBookingsForUser(user) {
+  if (!user) {
+    const error = new Error("Authentification requise.");
+    error.status = 401;
+    throw error;
+  }
+
+  if (user.role === "admin") {
+    return listBookings();
+  }
+  if (user.role === "moniteur") {
+    return listBookingsByMonitor(user.id);
+  }
+  if (user.role === "eleve") {
+    return listBookingsByStudent(user.id);
+  }
+
+  return [];
 }
 
 function getDurationMinutes(duration, typeId) {
@@ -51,4 +79,42 @@ export async function addBookingForStudent(studentId, payload) {
     adresseDepart,
     notesMoniteur: String(payload.note || "").trim()
   });
+}
+
+export async function cancelBookingForUser(user, bookingId) {
+  if (!user) {
+    const error = new Error("Authentification requise.");
+    error.status = 401;
+    throw error;
+  }
+
+  const id = Number(bookingId);
+  if (!Number.isFinite(id) || id <= 0) {
+    const error = new Error("Reservation invalide.");
+    error.status = 400;
+    throw error;
+  }
+
+  const booking = await findBookingById(id);
+  if (!booking) {
+    const error = new Error("Reservation introuvable.");
+    error.status = 404;
+    throw error;
+  }
+
+  const isOwnerStudent = user.role === "eleve" && Number(booking.eleve_id) === Number(user.id);
+  const isOwnerMonitor = user.role === "moniteur" && Number(booking.moniteur_id) === Number(user.id);
+  const isAdmin = user.role === "admin";
+
+  if (!isOwnerStudent && !isOwnerMonitor && !isAdmin) {
+    const error = new Error("Vous n'avez pas l'autorisation d'annuler cette reservation.");
+    error.status = 403;
+    throw error;
+  }
+
+  if (booking.statut === "annulee") {
+    return booking;
+  }
+
+  return updateBookingStatus(id, "annulee");
 }

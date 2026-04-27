@@ -111,6 +111,37 @@
         }
       }
 
+      function hasApiSession() {
+        return Boolean(user && Auth.getToken() && user.role === "eleve");
+      }
+
+      function getMapsUrlFromPlace(place, mapsUrl) {
+        if (mapsUrl) return mapsUrl;
+        const value = String(place || "").trim();
+        if (!value) return "https://www.google.com/maps/search/?api=1&query=EduCar%20Tunis";
+        if (value.startsWith("http")) return value;
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+      }
+
+      function toHistoryBooking(raw) {
+        const date = raw.date || (raw.date_lecon ? String(raw.date_lecon).slice(0, 10) : "");
+        const time = raw.time || (raw.date_lecon ? String(raw.date_lecon).slice(11, 16) : "");
+        const durationMinutes = Number(raw.duree_minutes ?? raw.dureeMinutes ?? 60);
+        const duration = durationMinutes % 60 === 0 ? `${durationMinutes / 60}h` : `${durationMinutes} min`;
+        const place = raw.adresse_depart ?? raw.adresseDepart ?? raw.place ?? "";
+
+        return {
+          serverId: raw.id ?? raw.serverId ?? null,
+          date,
+          time,
+          duration,
+          typeLabel: raw.typeLabel || (durationMinutes >= 120 ? "2 heures" : "1 heure"),
+          place,
+          mapsUrl: getMapsUrlFromPlace(place, raw.mapsUrl),
+          note: raw.notes_moniteur ?? raw.note ?? ""
+        };
+      }
+
       function normalizeMonthLabel(date) {
         const label = date.toLocaleDateString("fr-FR", { month: "short", year: "numeric" }).replace(".", "");
         return label ? label.charAt(0).toUpperCase() + label.slice(1) : label;
@@ -143,12 +174,28 @@
         });
       }
 
-      function renderHistory() {
+      async function renderHistory() {
         const list = document.getElementById("client-history-list");
         if (!list) return;
 
         const now = new Date();
-        const bookings = getUserBookings(getStoredBookings(), user)
+        let bookings = [];
+
+        if (hasApiSession()) {
+          try {
+            const rows = await Api.get("/bookings/me");
+            bookings = Array.isArray(rows)
+              ? rows.filter((row) => row.statut !== "annulee").map(toHistoryBooking)
+              : [];
+          } catch (error) {
+            Toast.error(error.message || "Impossible de charger l'historique.");
+            bookings = [];
+          }
+        } else {
+          bookings = getUserBookings(getStoredBookings(), user);
+        }
+
+        bookings = bookings
           .slice()
           .sort((a, b) => parseBookingDateTime(b) - parseBookingDateTime(a))
           .slice(0, 10);
