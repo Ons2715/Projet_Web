@@ -1,7 +1,4 @@
--- ============================================================
---  BASE DE DONNÉES : auto_ecole  (v3)
---  Encodage : utf8mb4 / utf8mb4_unicode_ci
--- ============================================================
+
  
 CREATE DATABASE IF NOT EXISTS auto_ecole
   CHARACTER SET utf8mb4
@@ -9,9 +6,6 @@ CREATE DATABASE IF NOT EXISTS auto_ecole
  
 USE auto_ecole;
  
--- ============================================================
---  TABLE CENTRALE : utilisateurs
--- ============================================================
 CREATE TABLE utilisateurs (
     id               INT AUTO_INCREMENT PRIMARY KEY,
     nom              VARCHAR(100) NOT NULL,
@@ -19,6 +13,7 @@ CREATE TABLE utilisateurs (
     mot_de_passe     VARCHAR(255) NOT NULL,
     telephone        VARCHAR(15)  NOT NULL,
     adresse          VARCHAR(255) NOT NULL DEFAULT '',
+    photo_profil      LONGTEXT NULL,
     role             ENUM('eleve', 'moniteur', 'admin') NOT NULL,
     date_creation    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

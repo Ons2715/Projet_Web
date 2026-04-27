@@ -47,7 +47,24 @@
           </div>
         </header>
 
-      
+        <section class="client-summary-grid">
+          <article class="card client-profile client-dashboard-profile">
+            <div class="card-body">
+              <div class="client-profile-top">
+                <div class="client-profile-photo" id="client-profile-photo">
+                  <span id="client-photo-fallback">EC</span>
+                </div>
+                <div class="client-profile-heading">
+                  <div class="client-profile-title-row">
+                    <h2 class="h4" id="client-name-label">Candidat EduCar</h2>
+                    <span class="badge badge-primary" id="client-formation-badge">Aucune formation</span>
+                  </div>
+                  <p class="text-muted" id="client-hours-label">0 / 0 h effectuees</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
 
         <section class="card">
           <div class="card-body">
@@ -115,20 +132,59 @@
     <script src="shared.js"></script>
     <script>
       const user = Auth.get();
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
       function getInitials(firstName = "", lastName = "") {
         return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "EC";
       }
 
-      if (user && (user.firstName || user.lastName)) {
-        document.getElementById("client-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim();
-        document.getElementById("client-photo-fallback").textContent = getInitials(user.firstName, user.lastName);
+      function getInitialsFromName(name = "") {
+        const parts = String(name).trim().split(/\s+/).filter(Boolean);
+        return `${parts[0]?.charAt(0) || ""}${parts[1]?.charAt(0) || ""}`.toUpperCase() || "EC";
       }
-      if (user && user.formation) {
-        document.getElementById("client-formation-badge").textContent = user.formation;
+
+      function renderClientSummary(profile) {
+        const currentUser = { ...(user || {}), ...(profile || {}) };
+        const fullName = currentUser.nom || currentUser.name || `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim();
+        const formation = currentUser.formation_nom || currentUser.formation || "Aucune formation";
+        const done = currentUser.heures_effectuees ?? currentUser.heuresEffectuees ?? 0;
+        const total = currentUser.heures_totales ?? currentUser.heuresTotales ?? 0;
+
+        document.getElementById("client-name-label").textContent = fullName || "Candidat EduCar";
+        document.getElementById("client-photo-fallback").textContent = currentUser.firstName || currentUser.lastName
+          ? getInitials(currentUser.firstName, currentUser.lastName)
+          : getInitialsFromName(fullName);
+        document.getElementById("client-formation-badge").textContent = formation;
+        document.getElementById("client-hours-label").textContent = `${done} / ${total} h effectuees`;
+
+        const photo = currentUser.photo || currentUser.avatar || (user && (user.photo || user.avatar));
+        if (photo) {
+          document.getElementById("client-profile-photo").innerHTML = `<img src="${escapeHtml(photo)}" alt="Photo de profil" />`;
+        }
       }
-      if (user && (user.photo || user.avatar)) {
-        document.getElementById("client-profile-photo").innerHTML = `<img src="${user.photo || user.avatar}" alt="Photo de profil" />`;
+
+      async function loadClientSummary() {
+        if (!user || !user.id) {
+          renderClientSummary(null);
+          return;
+        }
+
+        try {
+          const profile = await Api.get(`/users/${user.id}`);
+          renderClientSummary(profile);
+        } catch {
+          renderClientSummary(null);
+        }
       }
+
+      loadClientSummary();
 
       document.getElementById("client-logout-link").addEventListener("click", function () {
         Auth.clear();

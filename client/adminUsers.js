@@ -9,6 +9,11 @@ function ensureAdmin() {
 }
 
 function getMonitorForFormation(formationId) {
+  if (String(formationId) === "3" || String(formationId) === "4") {
+    const monitor = adminUsers.find((user) => user.role === "moniteur" && String(user.id_formation) === String(formationId));
+    return monitor ? monitor.nom : "Aucun moniteur affecte";
+  }
+
   const car = String(formationId) === "2" ? "Kia Picanto" : "Renault Clio";
   const monitor = adminUsers.find((user) => user.role === "moniteur" && user.voiture === car);
   return monitor ? monitor.nom : `Moniteur ${car} non ajoute`;
@@ -17,7 +22,7 @@ function getMonitorForFormation(formationId) {
 function updateFormByRole() {
   const isMonitor = document.getElementById("admin-role").value === "moniteur";
   document.getElementById("car-group").hidden = !isMonitor;
-  document.getElementById("formation-group").hidden = isMonitor;
+  document.getElementById("formation-group").hidden = false;
   document.getElementById("assigned-monitor-group").hidden = isMonitor;
   document.querySelectorAll(".admin-profile-option").forEach((button) => {
     button.classList.toggle("active", button.dataset.role === document.getElementById("admin-role").value);
@@ -49,11 +54,18 @@ function getInitials(name = "") {
 }
 
 function userPhotoCell(user) {
-  const photo = ProfilePhotos.get(user.email);
+  const photo = user.photo || user.avatar || ProfilePhotos.get(user.email);
   if (photo) {
     return `<div class="admin-user-photo"><img src="${photo}" alt="Photo de profil" /></div>`;
   }
   return `<div class="admin-user-photo">${getInitials(user.nom)}</div>`;
+}
+
+function formatHours(user) {
+  if (user.role !== "eleve") return "-";
+  const done = user.heures_effectuees ?? 0;
+  const total = user.heures_totales ?? "-";
+  return `${done} / ${total} h`;
 }
 
 function renderUsers() {
@@ -77,11 +89,12 @@ function renderUsers() {
       <td>${user.email || "-"}</td>
       <td>${user.telephone || "-"}</td>
       <td>${user.formation_nom || "Aucune formation"}</td>
+      <td><span class="badge badge-accent">${formatHours(user)}</span></td>
       <td>${user.encadre_par || "Aucun moniteur"}</td>
       <td>${user.date_creation ? new Date(user.date_creation).toLocaleDateString("fr-FR") : "-"}</td>
       <td><button class="btn btn-outline btn-sm" type="button" onclick="deleteUserAccount(${user.id}, '${String(user.nom || "").replace(/'/g, "\\'")}')">Supprimer</button></td>
     </tr>
-  `).join("") : `<tr><td colspan="8"><div class="admin-empty">Aucun candidat trouve.</div></td></tr>`;
+  `).join("") : `<tr><td colspan="9"><div class="admin-empty">Aucun candidat trouve.</div></td></tr>`;
 
   document.getElementById("monitors-table-body").innerHTML = monitors.length ? monitors.map((user) => `
     <tr>
@@ -126,9 +139,8 @@ async function createUser(event) {
 
     if (role === "moniteur") {
       payload.voiture = document.getElementById("admin-car").value;
-    } else {
-      payload.formationId = document.getElementById("admin-formation").value;
     }
+    payload.formationId = document.getElementById("admin-formation").value;
 
     await Api.post("/users", payload);
     Toast.success("Profil ajoute avec succes.");

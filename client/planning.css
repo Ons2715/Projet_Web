@@ -267,6 +267,22 @@
   background: linear-gradient(180deg, #eaffd5 0%, #ffffff 100%);
 }
 
+.planning-slot.is-disabled,
+.planning-slot:disabled {
+  border-color: #e4e8f0;
+  background: #f2f5fa;
+  color: #96a0b4;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.planning-slot.is-disabled:hover,
+.planning-slot:disabled:hover {
+  border-color: #e4e8f0;
+  background: #f2f5fa;
+  transform: none;
+}
+
 .planning-slot-time {
   display: block;
   margin-bottom: 6px;

@@ -159,6 +159,9 @@
           ProfilePhotos.set(user.email, user.photo);
           refreshProfilePhoto();
           Toast.success("Photo de profil mise a jour.");
+          Api.patch("/users/me/photo", { photo: user.photo }).catch((error) => {
+            Toast.error(error.message || "Photo gardee localement pour le moment.");
+          });
         };
         reader.readAsDataURL(file);
       });

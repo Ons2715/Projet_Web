@@ -1,4 +1,4 @@
-import { createUserProfile, deleteUserById, findUserById, listUsers } from "../repositories/userRepository.js";
+import { createUserProfile, deleteUserById, findUserById, listUsers, updateStudentFormation, updateUserPhotoById } from "../repositories/userRepository.js";
 import { sendWelcomeEmail } from "./mailService.js";
 import { hashPassword } from "../utils/password.js";
 
@@ -92,4 +92,44 @@ export async function deleteUserProfile(id) {
   }
 
   return { success: true };
+}
+
+export async function updateMyFormation(userId, formationId) {
+  const resolvedFormationId = Number(formationId);
+
+  if (![1, 2, 3, 4].includes(resolvedFormationId)) {
+    const error = new Error("Formation invalide.");
+    error.status = 400;
+    throw error;
+  }
+
+  const updated = await updateStudentFormation(userId, resolvedFormationId);
+
+  if (!updated) {
+    const error = new Error("Candidat introuvable.");
+    error.status = 404;
+    throw error;
+  }
+
+  return getUserById(userId);
+}
+
+export async function updateMyPhoto(userId, photo) {
+  const normalizedPhoto = String(photo || "").trim();
+
+  if (!normalizedPhoto.startsWith("data:image/")) {
+    const error = new Error("Veuillez choisir une image valide.");
+    error.status = 400;
+    throw error;
+  }
+
+  const updated = await updateUserPhotoById(userId, normalizedPhoto);
+
+  if (!updated) {
+    const error = new Error("Utilisateur introuvable.");
+    error.status = 404;
+    throw error;
+  }
+
+  return getUserById(userId);
 }

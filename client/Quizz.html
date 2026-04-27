@@ -34,14 +34,27 @@
         <div>
           <p class="client-kicker">Quizz</p>
           <h1 class="h2">Code de la route</h1>
-          <p class="text-muted">Choisissez un level homogene avec des questions melangees de plusieurs themes.</p>
+          <p class="text-muted">Choisissez un level ou lancez un examen blanc pour vous entrainer sur des questions mixtes.</p>
         </div>
         <a class="btn btn-outline" href="./dashboardClient.html">Mon espace</a>
       </header>
 
-      <section class="quiz-toolbar card">
-        <div class="card-body">
-          <div class="quiz-toolbar-content">
+      <section class="quiz-hero">
+        <div class="quiz-hero-content">
+          <div>
+            <p class="quiz-label">Entrainement code</p>
+            <h2>Preparer votre examen sans distraction</h2>
+            <p>Chaque session melange priorites, signalisation, securite, vitesse et conduite responsable.</p>
+          </div>
+          <div class="quiz-hero-stat">
+            <strong>30</strong>
+            <span>questions par level</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="quiz-toolbar">
+        <div class="quiz-toolbar-content">
             <div>
               <p class="quiz-label">Mode d'entrainement</p>
               <h2 class="h4">Selection des levels</h2>
@@ -54,28 +67,10 @@
                 Examen blanc
               </button>
             </div>
-          </div>
         </div>
       </section>
 
       <section class="topics-grid" id="topics-grid"></section>
-
-      <section class="card quiz-results-panel" id="scores-section">
-        <div class="card-body">
-          <div class="section-header">
-            <div>
-              <p class="quiz-label">Historique</p>
-              <h2 class="h3">Mes derniers resultats</h2>
-            </div>
-            <span class="badge badge-primary">Code</span>
-          </div>
-          <table class="table" id="scores-table">
-            <thead><tr><th>Theme</th><th>Score</th><th>Note</th><th>Date</th></tr></thead>
-            <tbody id="scores-body"></tbody>
-          </table>
-        </div>
-      </section>
-
     </div>
 
     <div id="view-quiz" style="display:none">
@@ -209,10 +204,6 @@ let answered = false;
 let quizResults = [];
 let timerInterval = null;
 let timeLeft = 30;
-const mockScores = [
-  { topic: 'Level 1', score: '26/30', pct: 87, date: '20 avr. 2026' },
-  { topic: 'Level 2', score: '24/30', pct: 80, date: '18 avr. 2026' },
-];
 
 function renderTopics() {
   const grid = document.getElementById('topics-grid');
@@ -220,12 +211,15 @@ function renderTopics() {
     const sel = selectedLevel === level.id;
     return `
       <div class="topic-card ${sel ? 'selected' : ''}" onclick="toggleTopic('${level.id}')">
-        <div class="topic-icon">${level.icon}</div>
+        <div class="topic-card-head">
+          <div class="topic-icon">${level.icon}</div>
+          <span class="badge ${sel ? 'badge-primary' : 'badge-muted'}">${level.count} questions</span>
+        </div>
         <div class="topic-name">${level.name}</div>
-        <div class="topic-count">${level.count} questions mixtes</div>
         <div class="topic-count">${level.description}</div>
-        <div class="topic-progress">
-          <div class="progress-bar"><div class="progress-fill" style="width:${Math.random()*60+30}%"></div></div>
+        <div class="topic-meta">
+          <span>Questions mixtes</span>
+          <span>Temps limite</span>
         </div>
       </div>
     `;
@@ -236,17 +230,6 @@ function toggleTopic(id) {
   selectedLevel = id;
   renderTopics();
   document.getElementById('start-btn').disabled = !selectedLevel;
-}
-
-function renderScores() {
-  document.getElementById('scores-body').innerHTML = mockScores.map((s) => `
-    <tr>
-      <td>${s.topic}</td>
-      <td><strong>${s.score}</strong></td>
-      <td><span class="badge ${s.pct >= 80 ? 'badge-success' : s.pct >= 60 ? 'badge-warning' : 'badge-danger'}">${s.pct}%</span></td>
-      <td style="color:var(--on-surface-muted)">${s.date}</td>
-    </tr>
-  `).join('');
 }
 
 function startQuiz() {
@@ -385,12 +368,6 @@ function showResults() {
     `).join('')}
   ` : '';
 
-  mockScores.unshift({
-    topic: LEVELS.find((level) => level.id === selectedLevel)?.name || 'Examen blanc',
-    score: `${correct}/${total}`,
-    pct,
-    date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
-  });
 }
 
 function restartQuiz() {
@@ -403,14 +380,12 @@ function showTopics() {
   document.getElementById('view-results').style.display = 'none';
   document.getElementById('view-quiz').style.display = 'none';
   document.getElementById('view-topics').style.display = 'block';
-  renderScores();
 }
 
 function exitQuiz() {
   clearInterval(timerInterval);
   document.getElementById('view-quiz').style.display = 'none';
   document.getElementById('view-topics').style.display = 'block';
-  renderScores();
 }
 
 function shuffleArray(items) {
@@ -446,7 +421,6 @@ document.getElementById('quiz-logout-link').addEventListener('click', function (
 });
 
 renderTopics();
-renderScores();
 </script>
 </body>
 </html>

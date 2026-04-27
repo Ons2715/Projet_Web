@@ -33,13 +33,27 @@ const formationCards = document.querySelectorAll(".plan-card");
         });
       });
 
-      function handlePayment() {
+      async function handlePayment() {
         const activeCard = document.querySelector(".plan-card.selected");
         const user = Auth.get() || {};
         user.formation = activeCard ? activeCard.dataset.formation : "Code";
         Auth.set(user);
         sessionStorage.setItem("selectedFormation", user.formation);
         sessionStorage.setItem("selectedFormationPrice", selectedTotal.textContent);
+        if (activeCard && Auth.getToken()) {
+          try {
+            const updatedProfile = await Api.patch("/users/me/formation", {
+              formationId: activeCard.dataset.formationId
+            });
+            user.formation = updatedProfile.formation_nom || user.formation;
+            user.heuresEffectuees = updatedProfile.heures_effectuees ?? user.heuresEffectuees;
+            user.heuresTotales = updatedProfile.heures_totales ?? user.heuresTotales;
+            Auth.set(user);
+          } catch (error) {
+            Toast.error(error.message || "Impossible d'enregistrer la formation.");
+            return;
+          }
+        }
         openWalletModal();
       }
 

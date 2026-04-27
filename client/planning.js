@@ -20,7 +20,9 @@ const SESSION_TYPES = [
 const DEFAULT_MONITOR_PROFILE = {
   firstName: "Mourad",
   lastName: "Ben Salah",
-  phone: "+216 20 000 000"
+  phone: "+216 20 000 000",
+  email: "",
+  formation: "Permis B"
 };
 const PLANNING_LeçonS = [
   {
@@ -49,6 +51,7 @@ let selectedDateKey = "";
 let selectedTypeId = SESSION_TYPES[0].id;
 let selectedSlot = "";
 let selectedReclamationIndex = -1;
+let serverBookings = [];
 
 function normalizeDate(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -103,15 +106,44 @@ function getInitials(firstName, lastName) {
   return initials || "MD";
 }
 
-function renderMonitorProfile() {
-  const monitorProfile = getMonitorProfile();
-  document.getElementById("monitor-fullname").value = `${monitorProfile.firstName} ${monitorProfile.lastName}`.trim();
-  document.getElementById("monitor-phone").value = monitorProfile.phone;
+function splitName(name = "") {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || "",
+    lastName: parts.slice(1).join(" ")
+  };
+}
+
+function renderMonitorProfile(monitorProfile = getMonitorProfile()) {
+  const fullName = monitorProfile.nom || `${monitorProfile.firstName || ""} ${monitorProfile.lastName || ""}`.trim();
+  const nameParts = splitName(fullName);
+  const firstName = monitorProfile.firstName || nameParts.firstName;
+  const lastName = monitorProfile.lastName || nameParts.lastName;
+
+  document.getElementById("monitor-fullname").value = fullName || "Moniteur non affecte";
+  document.getElementById("monitor-phone").value = monitorProfile.telephone || monitorProfile.phone || "";
+
   const photoBox = document.querySelector(".planning-monitor-photo");
-  if (monitorProfile.photo) {
-    photoBox.innerHTML = `<img src="${monitorProfile.photo}" alt="Photo du moniteur" />`;
+  const photo = ProfilePhotos.get(monitorProfile.email) || monitorProfile.photo || "";
+  if (photo) {
+    photoBox.innerHTML = `<img src="${photo}" alt="Photo du moniteur" />`;
   } else {
-    photoBox.innerHTML = `<span id="monitor-photo-fallback">${getInitials(monitorProfile.firstName, monitorProfile.lastName)}</span>`;
+    photoBox.innerHTML = `<span id="monitor-photo-fallback">${getInitials(firstName, lastName)}</span>`;
+  }
+}
+
+async function loadAssignedMonitor() {
+  if (!planningUser || !planningUser.id || !Auth.getToken()) {
+    renderMonitorProfile();
+    return;
+  }
+
+  try {
+    const monitor = await Api.get("/monitors/me/assigned");
+    renderMonitorProfile(monitor);
+  } catch (error) {
+    renderMonitorProfile();
+    Toast.error(error.message || "Impossible de charger les coordonnees du moniteur.");
   }
 }
 
@@ -136,6 +168,52 @@ function getDaySlots(date) {
     hours.push(`${String(hour).padStart(2, "0")}:00`);
   }
   return hours;
+}
+
+function getBookingDateKey(booking) {
+  if (booking.date) return booking.date;
+  if (booking.date_lecon) return formatDateKey(new Date(booking.date_lecon));
+  return "";
+}
+
+function getBookingTime(booking) {
+  if (booking.time) return booking.time;
+  if (!booking.date_lecon) return "";
+  const date = new Date(booking.date_lecon);
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function isSlotBooked(dateKey, slot) {
+  return serverBookings.some((booking) =>
+    booking.statut !== "annulee" &&
+    getBookingDateKey(booking) === dateKey &&
+    getBookingTime(booking) === slot
+  );
+}
+
+function isSlotPastOrCurrent(dateKey, slot) {
+  const now = new Date();
+  const slotDate = new Date(`${dateKey}T${slot}:00`);
+  const currentHourStart = new Date(now);
+  currentHourStart.setMinutes(0, 0, 0);
+  return slotDate <= currentHourStart;
+}
+
+function getSlotUnavailableReason(dateKey, slot) {
+  if (isSlotPastOrCurrent(dateKey, slot)) return "Horaire passe";
+  if (isSlotBooked(dateKey, slot)) return "Deja reserve";
+  return "";
+}
+
+async function loadServerBookings() {
+  if (!Auth.getToken()) return;
+
+  try {
+    serverBookings = await Api.get("/bookings");
+  } catch (error) {
+    serverBookings = [];
+    Toast.error(error.message || "Impossible de charger les creneaux reserves.");
+  }
 }
 
 function renderWeekDays() {
@@ -206,12 +284,26 @@ function renderSlots() {
     return;
   }
 
-  container.innerHTML = slots.map((slot) => `
-    <button class="planning-slot ${selectedSlot === slot ? "active" : ""}" type="button" onclick="selectSlot('${slot}')">
+  if (selectedSlot && getSlotUnavailableReason(selectedDateKey, selectedSlot)) {
+    selectedSlot = "";
+  }
+
+  container.innerHTML = slots.map((slot) => {
+    const unavailableReason = getSlotUnavailableReason(selectedDateKey, slot);
+    const unavailable = Boolean(unavailableReason);
+
+    return `
+    <button
+      class="planning-slot ${selectedSlot === slot ? "active" : ""} ${unavailable ? "is-disabled" : ""}"
+      type="button"
+      onclick="selectSlot('${slot}')"
+      ${unavailable ? "disabled" : ""}
+    >
       <span class="planning-slot-time">${slot}</span>
-      <span class="planning-slot-meta">Duree ${SESSION_TYPES.find((item) => item.id === selectedTypeId).duration}</span>
+      <span class="planning-slot-meta">${unavailableReason || `Duree ${SESSION_TYPES.find((item) => item.id === selectedTypeId).duration}`}</span>
     </button>
-  `).join("");
+  `;
+  }).join("");
 }
 
 function renderSelectedDateSummary() {
@@ -284,6 +376,9 @@ function selectSessionType(typeId) {
 }
 
 function selectSlot(slot) {
+  if (getSlotUnavailableReason(selectedDateKey, slot)) {
+    return;
+  }
   selectedSlot = slot;
   renderSlots();
 }
@@ -300,7 +395,7 @@ function resetBookingSelection() {
   renderSlots();
 }
 
-function confirmBooking() {
+async function confirmBooking() {
   if (!selectedDateKey) {
     Toast.error("Selectionnez d'abord une date.");
     return;
@@ -331,12 +426,13 @@ function confirmBooking() {
     return;
   }
 
-  bookings.push({
+  const bookingPayload = {
     studentId: planningUser?.id || `student_${Date.now()}`,
     studentFirstName: planningUser?.firstName || "Jean",
     studentLastName: planningUser?.lastName || "Dupont",
     studentPhone: planningUser?.phone || "Non renseigne",
     studentEmail: planningUser?.email || "",
+    studentFormation: planningUser?.formation || planningUser?.formation_nom || "Formation non renseignee",
     date: selectedDateKey,
     time: selectedSlot,
     typeId: selectedType.id,
@@ -347,9 +443,30 @@ function confirmBooking() {
       ? meetingAddress
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(meetingAddress)}`,
     note
-  });
+  };
+
+  try {
+    if (Auth.getToken()) {
+      const savedBooking = await Api.post("/bookings", bookingPayload);
+      bookingPayload.serverId = savedBooking.id;
+      bookingPayload.monitorId = savedBooking.moniteur_id;
+      bookingPayload.monitorName = savedBooking.moniteur_nom;
+    }
+  } catch (error) {
+    Toast.error(error.message || "Impossible d'enregistrer la seance.");
+    return;
+  }
+
+  bookings.push(bookingPayload);
   saveStoredBookings(bookings);
+  serverBookings.push({
+    id: bookingPayload.serverId,
+    date: bookingPayload.date,
+    time: bookingPayload.time,
+    statut: "confirmee"
+  });
   renderUpcomingBookings();
+  renderSlots();
   Toast.success(`Reservation confirmee pour le ${new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString("fr-FR")} a ${selectedSlot}.`);
   resetBookingSelection();
 }
@@ -458,15 +575,20 @@ document.getElementById("planning-logout-link").addEventListener("click", functi
   Auth.clear();
 });
 
-renderWeekDays();
-renderCalendar();
-renderSessionTypes();
-renderMonitorProfile();
-renderPlanningLeçons();
-document.getElementById("meeting-address").value = SESSION_TYPES[0].place;
-renderSelectedDateSummary();
-renderSlots();
-renderUpcomingBookings();
+async function initializePlanning() {
+  await loadServerBookings();
+  renderWeekDays();
+  renderCalendar();
+  renderSessionTypes();
+  loadAssignedMonitor();
+  renderPlanningLeçons();
+  document.getElementById("meeting-address").value = SESSION_TYPES[0].place;
+  renderSelectedDateSummary();
+  renderSlots();
+  renderUpcomingBookings();
+}
+
+initializePlanning();
 
 let storageRefreshTimer = null;
 window.addEventListener("storage", function (event) {

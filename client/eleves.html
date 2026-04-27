@@ -20,7 +20,7 @@
       </nav>
 
       <div class="client-sidebar-footer">
-        <a class="client-sidebar-footer-link" href="./profil.html">Profil</a>
+        <a class="client-sidebar-footer-link" href="./profil_Moniteur.html">Profil</a>
         <a class="client-sidebar-footer-link client-sidebar-footer-link-danger" href="./index.html" id="students-logout-link">Deconnexion</a>
       </div>
     </aside>
@@ -30,7 +30,7 @@
         <div>
           <p class="client-kicker">Candidats</p>
           <h1 class="h2">Liste des candidats</h1>
-          <p class="text-muted">Consultez les noms, prénoms et numeros de téléphone des candidats ayant reservé une seance.</p>
+          <p class="text-muted">Consultez les coordonnees des candidats affectes au moniteur connecte.</p>
         </div>
         <a class="btn btn-outline" href="./dashboradMoniteur.html">Retour planning</a>
       </header>
@@ -45,7 +45,21 @@
             <span class="badge badge-primary" id="students-total-badge">0 candidat</span>
           </div>
 
-          <div class="monitor-bookings-list" id="students-list"></div>
+          <div class="monitor-students-table-wrap" id="students-table-wrap">
+            <table class="table monitor-students-table">
+              <thead>
+                <tr>
+                  <th>Candidat</th>
+                  <th>Email</th>
+                  <th>Telephone</th>
+                  <th>Formation</th>
+                  <th>Heures</th>
+                  <th>Inscription</th>
+                </tr>
+              </thead>
+              <tbody id="students-table-body"></tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>

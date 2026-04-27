@@ -2,9 +2,11 @@ import { pool } from "../config/db.js";
 
 export async function listUsers() {
   const [rows] = await pool.query(
-    `SELECT u.id, u.nom, u.email, u.role, u.telephone, u.date_creation,
-            m.voiture,
+    `SELECT u.id, u.nom, u.email, u.role, u.telephone, u.photo_profil AS photo, u.date_creation,
+            m.voiture, m.id_formation,
             f.nom AS formation_nom,
+            f.heures_totales,
+            e.heures_effectuees,
             CASE
               WHEN u.role = 'eleve' AND e.id_formation = 2 THEN (
                 SELECT um.nom
@@ -48,9 +50,14 @@ export async function listUsers() {
 
 export async function findUserById(id) {
   const [rows] = await pool.query(
-    `SELECT id, nom, email, role, telephone, date_creation
-     FROM utilisateurs
-     WHERE id = ?`,
+    `SELECT u.id, u.nom, u.email, u.role, u.telephone, u.adresse, u.photo_profil AS photo, u.date_creation,
+            f.nom AS formation_nom,
+            f.heures_totales,
+            e.heures_effectuees
+     FROM utilisateurs u
+     LEFT JOIN eleves e ON e.id = u.id
+     LEFT JOIN formations f ON f.id = e.id_formation
+     WHERE u.id = ?`,
     [id]
   );
 
@@ -67,14 +74,36 @@ export async function deleteUserById(id) {
   return result.affectedRows > 0;
 }
 
+export async function updateStudentFormation(userId, formationId) {
+  const [result] = await pool.query(
+    `UPDATE eleves
+     SET id_formation = ?
+     WHERE id = ?`,
+    [formationId, userId]
+  );
+
+  return result.affectedRows > 0;
+}
+
+export async function updateUserPhotoById(userId, photo) {
+  const [result] = await pool.query(
+    `UPDATE utilisateurs
+     SET photo_profil = ?
+     WHERE id = ?`,
+    [photo, userId]
+  );
+
+  return result.affectedRows > 0;
+}
+
 function getFormationId({ role, voiture, formationId }) {
+  if (formationId) {
+    return Number(formationId);
+  }
+
   if (role === "moniteur") {
     if (voiture === "Kia Picanto") return 2;
     if (voiture === "Renault Clio") return 1;
-  }
-
-  if (formationId) {
-    return Number(formationId);
   }
 
   return 1;

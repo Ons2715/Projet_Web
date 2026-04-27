@@ -37,7 +37,11 @@ function toClientUser(user) {
     serverRole: user.role,
     phone: user.telephone,
     address: user.adresse,
-    formation: "Permis B"
+    photo: user.photo_profil || "",
+    avatar: user.photo_profil || "",
+    formation: user.formation_nom || "Permis B",
+    heuresEffectuees: user.heures_effectuees ?? 0,
+    heuresTotales: user.heures_totales ?? 0
   };
 }
 

@@ -711,19 +711,33 @@
         switchTab("register");
       }
 
-      function confirmPhotoAndPay() {
+      async function confirmPhotoAndPay() {
         if (!selectedProfilePhoto) {
           setPhotoError("Veuillez ajouter une photo avant de continuer.");
           return;
         }
 
+        const button = document.getElementById("photo-continue-btn");
         const user = pendingRegisteredUser || Auth.get() || {};
         user.photo = selectedProfilePhoto;
         user.avatar = selectedProfilePhoto;
         Auth.set(user);
         ProfilePhotos.set(user.email, selectedProfilePhoto);
-        Toast.success("Photo ajoutee avec succes.");
-        location.href = "chooseFormation.html";
+
+        button.disabled = true;
+        try {
+          const updatedProfile = await Api.patch("/users/me/photo", { photo: selectedProfilePhoto });
+          user.photo = updatedProfile.photo || selectedProfilePhoto;
+          user.avatar = updatedProfile.photo || selectedProfilePhoto;
+          Auth.set(user);
+          Toast.success("Photo ajoutee avec succes.");
+          location.href = "chooseFormation.html";
+        } catch (error) {
+          Toast.error(error.message || "Photo gardee localement pour le moment.");
+          location.href = "chooseFormation.html";
+        } finally {
+          button.disabled = false;
+        }
       }
 
       function getDashboardByRole(user) {

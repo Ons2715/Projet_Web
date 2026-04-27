@@ -1,91 +1,162 @@
- const BOOKINGS_KEY = "EduCar_client_bookings";
+const BOOKINGS_KEY = "EduCar_client_bookings";
 
-    function getStoredBookings() {
-      try {
-        return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
-      } catch {
-        return [];
-      }
-    }
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-    function getStudentsFromBookings() {
-      const map = new Map();
-      getStoredBookings().forEach((booking) => {
-        const key = `${booking.studentFirstName || ""}|${booking.studentLastName || ""}|${booking.studentPhone || ""}`;
-        if (!map.has(key)) {
-          map.set(key, {
-            firstName: booking.studentFirstName || "Jean",
-            lastName: booking.studentLastName || "Dupont",
-            phone: booking.studentPhone || "Non renseigne",
-            email: booking.studentEmail || "Non renseigne",
-            latestPlace: booking.place || "Non renseigne"
-          });
-        }
+function formatDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("fr-FR");
+}
+
+function getStoredBookings() {
+  try {
+    return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function getFallbackStudentsFromBookings() {
+  const map = new Map();
+
+  getStoredBookings().forEach((booking) => {
+    const key = `${booking.studentId || ""}|${booking.studentEmail || ""}|${booking.studentPhone || ""}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        id: booking.studentId || key,
+        nom: `${booking.studentFirstName || "Candidat"} ${booking.studentLastName || ""}`.trim(),
+        email: booking.studentEmail || "",
+        telephone: booking.studentPhone || "",
+        formation_nom: booking.studentFormation || booking.formation || "Formation non renseignee",
+        heures_effectuees: null,
+        heures_totales: null,
+        date_inscription: booking.date
       });
-      return Array.from(map.values()).sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
     }
+  });
 
-    function renderStudents() {
-      const students = getStudentsFromBookings();
-      const list = document.getElementById("students-list");
-      const badge = document.getElementById("students-total-badge");
-      badge.textContent = `${students.length} eleve${students.length > 1 ? "s" : ""}`;
+  return Array.from(map.values()).sort((a, b) => String(a.nom).localeCompare(String(b.nom)));
+}
 
-      if (!students.length) {
-        list.innerHTML = `<div class="monitor-empty-state">Aucun eleve avec reservation pour le moment.</div>`;
-        return;
-      }
+function normalizeStudent(student) {
+  const formation = student.formation_nom || student.type_formation || student.formation || "-";
 
-      list.innerHTML = students.map((student) => `
-        <article class="monitor-booking-item">
-          <div class="monitor-booking-date">
-            <span>${student.firstName.charAt(0)}${student.lastName.charAt(0)}</span>
-            <small>Eleve</small>
-          </div>
-          <div class="monitor-booking-content">
-            <div class="monitor-booking-top">
-              <div>
-                <h3>${student.firstName} ${student.lastName}</h3>
-                <p>Contact direct de l'eleve</p>
-              </div>
-              <span class="badge badge-accent">Actif</span>
+  return {
+    id: student.id,
+    nom: student.nom || `${student.firstName || ""} ${student.lastName || ""}`.trim() || "Candidat",
+    email: student.email || "-",
+    telephone: student.telephone || student.phone || "-",
+    photo: student.photo || "",
+    avatar: student.avatar || "",
+    formation: ["1 heure", "2 heures"].includes(formation) ? "Formation non renseignee" : formation,
+    heuresEffectuees: student.heures_effectuees,
+    heuresTotales: student.heures_totales,
+    dateInscription: student.date_inscription
+  };
+}
+
+function getInitials(name = "") {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  return `${parts[0]?.charAt(0) || ""}${parts[1]?.charAt(0) || ""}`.toUpperCase() || "EC";
+}
+
+function getStudentPhoto(student) {
+  return ProfilePhotos.get(student.email) || student.photo || student.avatar || "";
+}
+
+function renderStudents(students) {
+  const normalizedStudents = students.map(normalizeStudent);
+  const tableBody = document.getElementById("students-table-body");
+  const badge = document.getElementById("students-total-badge");
+
+  badge.textContent = `${normalizedStudents.length} candidat${normalizedStudents.length > 1 ? "s" : ""}`;
+
+  if (!normalizedStudents.length) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6">
+          <div class="monitor-empty-state">Aucun candidat n'est affecte a votre espace pour le moment.</div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tableBody.innerHTML = normalizedStudents.map((student) => {
+    const hoursDone = student.heuresEffectuees ?? 0;
+    const totalHours = student.heuresTotales ?? "-";
+    const photo = getStudentPhoto(student);
+
+    return `
+      <tr>
+        <td>
+          <div class="monitor-student-cell">
+            <div class="monitor-student-photo">
+              ${photo
+                ? `<img src="${escapeHtml(photo)}" alt="Photo de profil" />`
+                : escapeHtml(getInitials(student.nom))}
             </div>
-            <div class="monitor-booking-meta">
-              <span><strong>Telephone :</strong> ${student.phone}</span>
-              <span><strong>Email :</strong> ${student.email}</span>
-            </div>
-            <div class="monitor-booking-location">
-              <strong>Dernier lieu saisi</strong>
-              <p>${student.latestPlace}</p>
+            <div>
+              <strong>${escapeHtml(student.nom)}</strong>
+              <small>#${escapeHtml(student.id || "-")}</small>
             </div>
           </div>
-          <div class="monitor-booking-actions">
-            <a class="btn btn-outline btn-sm" href="tel:${student.phone !== "Non renseigne" ? student.phone : ""}">Appeler</a>
-          </div>
-        </article>
-      `).join("");
-    }
+        </td>
+        <td>${escapeHtml(student.email)}</td>
+        <td>
+          ${student.telephone && student.telephone !== "-"
+            ? `<a class="monitor-phone-link" href="tel:${escapeHtml(student.telephone)}">${escapeHtml(student.telephone)}</a>`
+            : "-"}
+        </td>
+        <td>${escapeHtml(student.formation)}</td>
+        <td>
+          <span class="badge badge-accent">${escapeHtml(hoursDone)} / ${escapeHtml(totalHours)} h</span>
+        </td>
+        <td>${escapeHtml(formatDate(student.dateInscription))}</td>
+      </tr>
+    `;
+  }).join("");
+}
 
-    const monitorUser = Auth.get() || {};
-    if (monitorUser && (monitorUser.firstName || monitorUser.lastName)) {
-      document.getElementById("students-monitor-name-label").textContent = `${monitorUser.firstName || ""} ${monitorUser.lastName || ""}`.trim();
-    }
-    if (monitorUser && monitorUser.formation) {
-      document.getElementById("students-monitor-formation-badge").textContent = monitorUser.formation;
-    }
+async function loadMonitorStudents() {
+  const monitorUser = Auth.get() || {};
 
-    document.getElementById("students-logout-link").addEventListener("click", function () {
-      Auth.clear();
-    });
+  if (!monitorUser.id) {
+    Toast.error("Connectez-vous avec un compte moniteur.");
+    renderStudents([]);
+    return;
+  }
 
-    renderStudents();
+  try {
+    const students = await Api.get("/students/monitor/me");
+    renderStudents(students);
+  } catch (error) {
+    const fallbackStudents = getFallbackStudentsFromBookings();
+    renderStudents(fallbackStudents);
+    Toast.error(error.message || "Impossible de charger les candidats depuis le serveur.");
+  }
+}
 
-    let storageRefreshTimer = null;
-    window.addEventListener("storage", function (event) {
-      if (event.key !== BOOKINGS_KEY) return;
-      if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
-      storageRefreshTimer = setTimeout(() => {
-        storageRefreshTimer = null;
-        renderStudents();
-      }, 50);
-    });
+document.getElementById("students-logout-link").addEventListener("click", function () {
+  Auth.clear();
+});
+
+loadMonitorStudents();
+
+let storageRefreshTimer = null;
+window.addEventListener("storage", function (event) {
+  if (event.key !== BOOKINGS_KEY) return;
+  if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+  storageRefreshTimer = setTimeout(() => {
+    storageRefreshTimer = null;
+    loadMonitorStudents();
+  }, 50);
+});

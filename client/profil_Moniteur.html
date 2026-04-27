@@ -165,6 +165,9 @@
         syncMonitorProfile();
         refreshMonitorPhoto();
         Toast.success("Photo de profil mise a jour.");
+        Api.patch("/users/me/photo", { photo: monitorUser.photo }).catch((error) => {
+          Toast.error(error.message || "Photo gardee localement pour le moment.");
+        });
       };
       reader.readAsDataURL(file);
     });

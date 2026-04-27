@@ -202,6 +202,10 @@ body {
   margin-bottom: 24px;
 }
 
+.client-dashboard-profile {
+  grid-column: span 2;
+}
+
 .client-stat-label {
   margin-bottom: 8px;
   color: var(--on-surface-muted);

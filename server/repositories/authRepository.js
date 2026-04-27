@@ -2,9 +2,14 @@ import { pool } from "../config/db.js";
 
 export async function findUserByEmail(email) {
   const [rows] = await pool.query(
-    `SELECT id, nom, email, mot_de_passe, role, telephone, adresse, date_creation
-     FROM utilisateurs
-     WHERE email = ?`,
+    `SELECT u.id, u.nom, u.email, u.mot_de_passe, u.role, u.telephone, u.adresse, u.photo_profil, u.date_creation,
+            f.nom AS formation_nom,
+            f.heures_totales,
+            e.heures_effectuees
+     FROM utilisateurs u
+     LEFT JOIN eleves e ON e.id = u.id
+     LEFT JOIN formations f ON f.id = e.id_formation
+     WHERE u.email = ?`,
     [email]
   );
   return rows[0] || null;
