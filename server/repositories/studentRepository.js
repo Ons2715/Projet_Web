@@ -9,11 +9,11 @@ export async function listStudents(monitorId) {
               u.telephone,
               NULL AS type_formation,
               DATE(u.date_creation) AS date_inscription,
-              COUNT(l.id) AS booking_count,
-              MAX(l.date_lecon) AS last_lesson_date
+              COUNT(s.id) AS booking_count,
+              MAX(s.date_lecon) AS last_lesson_date
        FROM utilisateurs u
-       JOIN lecons l ON l.eleve_id = u.id
-       WHERE u.role = 'eleve' AND l.moniteur_id = ?
+       JOIN seances s ON s.eleve_id = u.id
+       WHERE u.role = 'eleve' AND s.moniteur_id = ?
        GROUP BY u.id, u.nom, u.email, u.telephone, u.date_creation
        ORDER BY last_lesson_date DESC, u.date_creation DESC`,
       [monitorId]
@@ -28,10 +28,10 @@ export async function listStudents(monitorId) {
             u.telephone,
             NULL AS type_formation,
             DATE(u.date_creation) AS date_inscription,
-            COUNT(l.id) AS booking_count,
-            MAX(l.date_lecon) AS last_lesson_date
+            COUNT(s.id) AS booking_count,
+            MAX(s.date_lecon) AS last_lesson_date
      FROM utilisateurs u
-     LEFT JOIN lecons l ON l.eleve_id = u.id
+     LEFT JOIN seances s ON s.eleve_id = u.id
      WHERE u.role = 'eleve'
      GROUP BY u.id, u.nom, u.email, u.telephone, u.date_creation
      ORDER BY u.date_creation DESC`

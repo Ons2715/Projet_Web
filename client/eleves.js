@@ -39,15 +39,136 @@ async function fetchStudentsByMonitor(monitorId) {
   }
 }
 
-async function fetchStudents() {
-  const monitorUser = window.Auth && typeof window.Auth.get === "function" ? (window.Auth.get() || {}) : {};
-  const monitorId = Number.parseInt(monitorUser.id, 10);
+async function fetchAllStudentsFromUsersApi() {
+  try {
+    let users;
+    if (window.Api && typeof window.Api.get === "function") {
+      users = await window.Api.get("/users");
+    } else {
+      const response = await fetch("http://localhost:4000/api/users");
+      users = await response.json().catch(() => []);
+      if (!response.ok) {
+        throw new Error("Erreur API users");
+      }
+    }
 
-  if (Number.isNaN(monitorId)) {
+    if (!Array.isArray(users)) return [];
+
+    return users
+      .filter((user) => user && user.role === "eleve")
+      .map((user) => ({
+        id: user.id,
+        nom: user.nom || "Nom inconnu",
+        email: user.email || "Non renseigne",
+        telephone: user.telephone || "Non renseigne",
+        booking_count: 0,
+        last_lesson_date: null
+      }));
+  } catch (error) {
+    console.error("Erreur de chargement des eleves depuis /users:", error);
     return [];
   }
+}
 
-  return fetchStudentsByMonitor(monitorId);
+function getStudentsFromLocalBookings() {
+  try {
+    const bookings = JSON.parse(localStorage.getItem("EduCar_client_bookings") || "[]");
+    if (!Array.isArray(bookings) || !bookings.length) return [];
+
+    const byStudent = new Map();
+
+    bookings.forEach((booking) => {
+      const firstName = String(booking.studentFirstName || "").trim();
+      const lastName = String(booking.studentLastName || "").trim();
+      const fullName = `${firstName} ${lastName}`.trim() || "Candidat";
+      const email = String(booking.studentEmail || "").trim();
+      const phone = String(booking.studentPhone || "").trim();
+      const studentId = String(booking.studentId || "").trim();
+      const key = studentId || email || phone || fullName;
+      if (!key) return;
+
+      const existing = byStudent.get(key) || {
+        id: studentId || key,
+        nom: fullName,
+        email: email || "Non renseigne",
+        telephone: phone || "Non renseigne",
+        booking_count: 0,
+        last_lesson_date: null
+      };
+
+      existing.booking_count += 1;
+
+      const bookingDate = booking.date ? new Date(`${booking.date}T12:00:00`) : null;
+      if (bookingDate && !Number.isNaN(bookingDate.getTime())) {
+        const currentLast = existing.last_lesson_date ? new Date(existing.last_lesson_date) : null;
+        if (!currentLast || bookingDate > currentLast) {
+          existing.last_lesson_date = bookingDate.toISOString();
+        }
+      }
+
+      byStudent.set(key, existing);
+    });
+
+    return Array.from(byStudent.values()).sort((a, b) => {
+      const da = a.last_lesson_date ? new Date(a.last_lesson_date).getTime() : 0;
+      const db = b.last_lesson_date ? new Date(b.last_lesson_date).getTime() : 0;
+      return db - da;
+    });
+  } catch (error) {
+    console.error("Erreur de lecture des reservations locales:", error);
+    return [];
+  }
+}
+
+async function fetchStudents() {
+  const monitorUser = window.Auth && typeof window.Auth.get === "function" ? (window.Auth.get() || {}) : {};
+  const monitorIdFromUser = Number.parseInt(monitorUser.id, 10);
+  let students = [];
+
+  if (!Number.isNaN(monitorIdFromUser)) {
+    students = await fetchStudentsByMonitor(monitorIdFromUser);
+  } else {
+    const monitorIdFromToken = getMonitorIdFromToken();
+    if (!Number.isNaN(monitorIdFromToken)) {
+      students = await fetchStudentsByMonitor(monitorIdFromToken);
+    } else {
+      students = await fetchStudentsByMonitor();
+    }
+  }
+
+  if (students.length) {
+    return students;
+  }
+
+  const usersStudents = await fetchAllStudentsFromUsersApi();
+  if (usersStudents.length) {
+    return usersStudents;
+  }
+
+  const localStudents = getStudentsFromLocalBookings();
+  return localStudents;
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const parts = String(token || "").split(".");
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function getMonitorIdFromToken() {
+  if (!window.Auth || typeof window.Auth.getToken !== "function") {
+    return NaN;
+  }
+  const payload = decodeJwtPayload(window.Auth.getToken());
+  const id = Number.parseInt(payload && payload.id, 10);
+  return Number.isNaN(id) ? NaN : id;
 }
 
 function renderStudents(students) {
