@@ -367,8 +367,18 @@
       document.getElementById("monitor-formation-badge").textContent = monitorUser.formation;
     }
 
-    document.getElementById("monitor-logout-link").addEventListener("click", function () {
-      Auth.clear();
-    });
+     document.getElementById("monitor-logout-link").addEventListener("click", function () {
+       Auth.clear();
+     });
 
-    renderAll();
+     renderAll();
+
+     let storageRefreshTimer = null;
+     window.addEventListener("storage", function (event) {
+       if (event.key !== BOOKINGS_KEY) return;
+       if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+       storageRefreshTimer = setTimeout(() => {
+         storageRefreshTimer = null;
+         renderAll();
+       }, 50);
+     });

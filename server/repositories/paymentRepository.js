@@ -47,4 +47,3 @@ export async function updatePaymentStatut(id, statut) {
     [statut, id]
   );
 }
-.

@@ -79,3 +79,13 @@
     });
 
     renderStudents();
+
+    let storageRefreshTimer = null;
+    window.addEventListener("storage", function (event) {
+      if (event.key !== BOOKINGS_KEY) return;
+      if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+      storageRefreshTimer = setTimeout(() => {
+        storageRefreshTimer = null;
+        renderStudents();
+      }, 50);
+    });

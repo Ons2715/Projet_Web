@@ -467,3 +467,16 @@ document.getElementById("meeting-address").value = SESSION_TYPES[0].place;
 renderSelectedDateSummary();
 renderSlots();
 renderUpcomingBookings();
+
+let storageRefreshTimer = null;
+window.addEventListener("storage", function (event) {
+  if (event.key !== BOOKINGS_KEY) return;
+  if (storageRefreshTimer) clearTimeout(storageRefreshTimer);
+  storageRefreshTimer = setTimeout(() => {
+    storageRefreshTimer = null;
+    renderCalendar();
+    renderSelectedDateSummary();
+    renderSlots();
+    renderUpcomingBookings();
+  }, 50);
+});
