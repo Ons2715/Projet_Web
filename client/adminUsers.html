@@ -36,7 +36,7 @@
               <div class="admin-toolbar">
                 <div>
                   <p class="client-kicker">Profils</p>
-                  <h2 class="h3">Utilisateurs inscrits</h2>
+                  <h2 class="h3">Liste des utilisateurs inscrits</h2>
                 </div>
                 <div class="admin-toolbar-actions">
                   <input class="form-input admin-search-input" id="user-search" type="search" placeholder="Rechercher nom ou email" />
@@ -113,11 +113,11 @@
           <div class="admin-profile-switch" role="group" aria-label="Type de profil">
             <button class="admin-profile-option active" type="button" data-role="eleve">
               <span>Candidat</span>
-              <small>Formation + moniteur</small>
+              
             </button>
             <button class="admin-profile-option" type="button" data-role="moniteur">
               <span>Moniteur</span>
-              <small>Formation + voiture</small>
+              
             </button>
           </div>
           <div class="form-grid-2">
@@ -141,6 +141,11 @@
           <div class="form-group">
             <label class="form-label" for="admin-address">Adresse</label>
             <input class="form-input" id="admin-address" type="text" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="admin-photo">Photo de profil</label>
+            <input class="form-input" id="admin-photo" type="file" accept="image/*" />
+            <img id="admin-photo-preview" class="photo-preview" alt="Apercu de la photo de profil" />
           </div>
           <div class="form-group" id="formation-group">
             <label class="form-label" for="admin-formation">Formation</label>

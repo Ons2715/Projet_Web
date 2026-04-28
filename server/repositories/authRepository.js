@@ -3,12 +3,15 @@ import { pool } from "../config/db.js";
 export async function findUserByEmail(email) {
   const [rows] = await pool.query(
     `SELECT u.id, u.nom, u.email, u.mot_de_passe, u.role, u.telephone, u.adresse, u.photo_profil, u.date_creation,
-            f.nom AS formation_nom,
-            f.heures_totales,
-            e.heures_effectuees
+            COALESCE(fe.nom, fm.nom) AS formation_nom,
+            COALESCE(fe.heures_totales, fm.heures_totales) AS heures_totales,
+            e.heures_effectuees,
+            m.voiture
      FROM utilisateurs u
      LEFT JOIN eleves e ON e.id = u.id
-     LEFT JOIN formations f ON f.id = e.id_formation
+     LEFT JOIN moniteurs m ON m.id = u.id
+     LEFT JOIN formations fe ON fe.id = e.id_formation
+     LEFT JOIN formations fm ON fm.id = m.id_formation
      WHERE u.email = ?`,
     [email]
   );
@@ -39,7 +42,7 @@ export async function createUser({ nom, email, motDePasse, role, telephone, adre
       await connection.query(
         `INSERT INTO moniteurs (id, id_formation, voiture)
          VALUES (?, ?, ?)`,
-        [result.insertId, 1, "Kia Picanto"]
+        [result.insertId, 1, "Renault Clio"]
       );
     }
 

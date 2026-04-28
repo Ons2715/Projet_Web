@@ -138,16 +138,11 @@ body {
 }
 
 .monitor-day-column.is-today {
-  background: rgba(255, 177, 0, 0.08);
+  background: transparent;
 }
 
 .monitor-day-column.is-today::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 177, 0, 0.24) 50%, transparent 100%);
-  transform: translateX(-120%);
-  animation: todayMarquee 3.4s linear infinite;
+  content: none;
 }
 
 .monitor-time-label {
@@ -205,6 +200,7 @@ body {
   background: #effbd9;
   text-align: left;
   cursor: pointer;
+  pointer-events: auto;
   transition: var(--transition);
   overflow: visible;
 }
@@ -213,6 +209,11 @@ body {
 .exam-card.selected {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+
+.exam-card:focus {
+  outline: 2px solid #ffd57a;
+  outline-offset: 2px;
 }
 
 .exam-card span,
@@ -255,16 +256,25 @@ body {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #526078;
-  font-size: 12px;
+  color: var(--on-surface);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
   line-height: 1.2;
   text-align: left;
-  cursor: pointer;
 }
 
-.exam-candidate-name:hover {
+.exam-card:hover .exam-candidate-name,
+.exam-card.selected .exam-candidate-name {
   color: var(--primary-dark);
-  text-decoration: underline;
+}
+
+.exam-card-date {
+  margin-top: 3px;
+  color: #526078;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
 }
 
 .monitor-details-card,

@@ -1,4 +1,5 @@
 let adminUsers = [];
+let selectedProfilePhoto = "";
 
 function ensureAdmin() {
   const user = Auth.get();
@@ -27,7 +28,27 @@ function updateFormByRole() {
   document.querySelectorAll(".admin-profile-option").forEach((button) => {
     button.classList.toggle("active", button.dataset.role === document.getElementById("admin-role").value);
   });
+  syncMonitorCarWithFormation();
   updateAssignedMonitorPreview();
+}
+
+function syncMonitorCarWithFormation() {
+  const role = document.getElementById("admin-role").value;
+  const formationId = document.getElementById("admin-formation").value;
+  const carSelect = document.getElementById("admin-car");
+
+  if (!carSelect || role !== "moniteur") {
+    return;
+  }
+
+  if (String(formationId) === "2") {
+    carSelect.value = "Kia Picanto";
+    return;
+  }
+
+  if (String(formationId) === "1") {
+    carSelect.value = "Renault Clio";
+  }
 }
 
 function updateAssignedMonitorPreview() {
@@ -46,6 +67,26 @@ function openUserModal() {
 
 function closeUserModal() {
   document.getElementById("user-modal").classList.remove("open");
+}
+
+function updatePhotoPreview(photo = "") {
+  const preview = document.getElementById("admin-photo-preview");
+  if (!preview) {
+    return;
+  }
+
+  selectedProfilePhoto = photo;
+  preview.src = photo || "";
+  preview.style.display = photo ? "block" : "none";
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Impossible de lire la photo selectionnee."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function getInitials(name = "") {
@@ -142,10 +183,18 @@ async function createUser(event) {
     }
     payload.formationId = document.getElementById("admin-formation").value;
 
-    await Api.post("/users", payload);
+    const createdUser = await Api.post("/users", payload);
+    if (selectedProfilePhoto) {
+      ProfilePhotos.set(payload.email, selectedProfilePhoto);
+      if (createdUser?.email && createdUser.email !== payload.email) {
+        ProfilePhotos.set(createdUser.email, selectedProfilePhoto);
+      }
+    }
+
     Toast.success("Profil ajoute avec succes.");
     event.target.reset();
     document.getElementById("admin-role").value = "eleve";
+    updatePhotoPreview("");
     updateFormByRole();
     closeUserModal();
     await loadUsers();
@@ -187,9 +236,30 @@ document.querySelectorAll(".admin-profile-option").forEach((button) => {
     updateFormByRole();
   });
 });
-document.getElementById("admin-formation").addEventListener("change", updateAssignedMonitorPreview);
+document.getElementById("admin-formation").addEventListener("change", function () {
+  syncMonitorCarWithFormation();
+  updateAssignedMonitorPreview();
+});
+document.getElementById("admin-photo").addEventListener("change", async function () {
+  const file = this.files?.[0];
+  if (!file) {
+    updatePhotoPreview("");
+    return;
+  }
+
+  try {
+    const photo = await readFileAsDataUrl(file);
+    updatePhotoPreview(photo);
+  } catch (error) {
+    updatePhotoPreview("");
+    Toast.error(error.message);
+  }
+});
 document.getElementById("admin-user-form").addEventListener("reset", function () {
-  window.setTimeout(updateFormByRole, 0);
+  window.setTimeout(() => {
+    updatePhotoPreview("");
+    updateFormByRole();
+  }, 0);
 });
 document.getElementById("admin-user-form").addEventListener("submit", createUser);
 loadUsers().catch((error) => Toast.error(error.message));

@@ -14,29 +14,36 @@ function attachmentLink(item) {
   return `<a class="btn btn-outline btn-sm" href="${item.piece_data}" download="${item.piece_nom}">Piece jointe</a>`;
 }
 
+function formatStatusLabel(status) {
+  if (status === "terminee" || status === "traitee") return "terminee";
+  if (status === "en_cours") return "en cours";
+  return status || "nouvelle";
+}
+
 function renderReclamations(items) {
   const list = document.getElementById("reclamation-list");
   const count = document.getElementById("reclamation-count");
-  count.textContent = `${items.length} reclamation${items.length > 1 ? "s" : ""}`;
+  const visibleItems = items.filter((item) => item.utilisateur_nom);
+  count.textContent = `${visibleItems.length} reclamation${visibleItems.length > 1 ? "s" : ""}`;
 
-  if (!items.length) {
+  if (!visibleItems.length) {
     list.innerHTML = `<div class="admin-empty">Aucune reclamation pour le moment.</div>`;
     return;
   }
-
-  list.innerHTML = items.map((item) => `
+//permet de rendre la liste des reclamations dans la page adminReclamations.html
+  list.innerHTML = visibleItems.map((item) => `
     <article class="admin-reclamation-item">
       <div class="admin-reclamation-head">
         <div class="admin-reclamation-user">
-          <h3 class="h4">${item.utilisateur_nom || "Utilisateur supprime"}</h3>
+          <h3 class="h4">${item.utilisateur_nom}</h3>
           <span>${item.utilisateur_email || "Email indisponible"}</span>
           <span>${item.utilisateur_telephone || "Telephone indisponible"}</span>
         </div>
-        <span class="badge badge-warning">${item.statut || "nouvelle"}</span>
+        <span class="badge badge-warning">${formatStatusLabel(item.statut)}</span>
       </div>
       <div class="admin-reclamation-meta">
-        <span>Reservation: ${item.reservation_ref || "-"}</span>
-        <span>${item.date_creation ? new Date(item.date_creation).toLocaleString("fr-FR") : "-"}</span>
+        
+        <span>Réclamation reçue: ${item.date_creation ? new Date(item.date_creation).toLocaleString("fr-FR") : "-"}</span>
         <span>Moniteur: ${item.moniteur_nom || "-"}${item.moniteur_telephone ? ` - ${item.moniteur_telephone}` : ""}</span>
       </div>
       <p class="admin-reclamation-reason">${item.raison}</p>
@@ -44,8 +51,8 @@ function renderReclamations(items) {
         ${attachmentLink(item)}
         <div class="admin-reclamation-treat-action">
           ${
-            item.statut === "en_cours" || item.statut === "traitee"
-              ? `<button class="btn btn-outline btn-sm" type="button" disabled>En cours</button>`
+            item.statut === "en_cours" || item.statut === "traitee" || item.statut === "terminee"
+              ? `<button class="btn btn-outline btn-sm" type="button" disabled>Terminee</button>`
               : `<button class="btn btn-primary btn-sm" type="button" onclick="treatReclamation(${item.id})">Traiter</button>`
           }
         </div>
@@ -62,7 +69,7 @@ async function loadReclamations() {
 async function treatReclamation(id) {
   try {
     await Api.patch(`/reclamations/${id}/traiter`);
-    Toast.success("Reclamation traitee. Email envoye au candidat.");
+    Toast.success("Reclamation terminée. Email envoyé au candidat.");
     await loadReclamations();
   } catch (error) {
     Toast.error(error.message);

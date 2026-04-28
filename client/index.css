@@ -68,3 +68,318 @@ body {
   text-align: right;
   color: #0f172a;
 }
+
+/* ─── Hero layout ─────────────────────────────────────────── */
+
+.hero-copy {
+  transform: translateY(-58px);
+}
+
+.hero-driving-scene {
+  position: absolute;
+  right: clamp(18px, 5vw, 78px);
+  bottom: clamp(4px, 2vw, 26px);
+  z-index: 5;
+  width: min(82vw, 1100px);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ─── Driving-school sign ─────────────────────────────────── */
+
+
+.driving-school-sign::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 8px;
+  height: 54px;
+  transform: translateX(-50%);
+  background: #0f172a;
+}
+
+.driving-school-sign .material-symbols-outlined {
+  color: #ffffff;
+  font-size: 28px;
+}
+
+.driving-school-sign strong {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.driving-school-sign small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ─── Cars container ──────────────────────────────────────── */
+
+.hero-cars {
+  position: relative;
+  height: clamp(420px, 50vw, 640px);
+}
+
+/* ─── Shared wrap ─────────────────────────────────────────── */
+
+.hero-car-wrap {
+  position: absolute;
+  /*
+    duration = original 10.5s ÷ 0.2 = 52s  (vitesse x0.2 = très lente)
+    scale FIXED = 1 during the entire animation (taille inchangeable)
+    animation-iteration-count: 1  +  fill-mode: forwards  → reste visible
+  */
+  animation-duration: 52s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  transform-origin: 50% 84%;
+}
+
+.hero-car-wrap::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 10%;
+  bottom: 4%;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  filter: blur(9px);
+  transform: scaleX(0.82);
+  animation: tireShadow 52s cubic-bezier(0.22, 1, 0.36, 1) 1 forwards;
+}
+
+.hero-car {
+  display: block;
+  height: auto;
+  object-fit: contain;
+  border-width: 0;
+  margin: 0;
+  padding: 0;
+  filter: drop-shadow(0 22px 26px rgba(0, 0, 0, 0.4));
+}
+
+/* ─── Larger sizes ────────────────────────────────────────── */
+
+.hero-car-clio {
+  width: clamp(420px, 46vw, 620px);
+}
+
+.hero-car-picanto {
+  width: clamp(420px, 46vw, 620px);
+}
+
+/* ─── Clio — from centre-top → bottom-left, taille fixe ──── */
+
+.hero-car-wrap-clio {
+  left: 0;
+  bottom: clamp(16px, 2vw, 30px);
+  animation-name: clioSlide;
+}
+
+@keyframes clioSlide {
+  /* Départ : point de fuite (centre-haut), invisible */
+  0% {
+    opacity: 0;
+    transform: translate(380px, -430px);
+  }
+  /* Apparaît au point de départ */
+  5% {
+    opacity: 1;
+    transform: translate(380px, -430px);
+  }
+  /* Glisse lentement vers sa position finale */
+  70% {
+    opacity: 1;
+    transform: translate(30px, -18px);
+  }
+  /* Arrivée — reste là pour toujours */
+  85%, 100% {
+    opacity: 1;
+    transform: translate(18px, 0);
+  }
+}
+
+/* ─── Picanto — from centre-top → bottom-right, taille fixe ─ */
+
+.hero-car-wrap-picanto {
+  right: -60px;
+  bottom: 0;
+  animation-name: picantoSlide;
+  animation-delay: 2s;
+}
+
+.hero-car-wrap-picanto::after {
+  animation-delay: 2s;
+}
+
+@keyframes picantoSlide {
+  0% {
+    opacity: 0;
+    transform: translate(100px, -460px);
+  }
+  5% {
+    opacity: 1;
+    transform: translate(100px, -460px);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(20px, -24px);
+  }
+  85%, 100% {
+    opacity: 1;
+    transform: translate(-24px, 0);
+  }
+}
+
+/* ─── Shadow animation ────────────────────────────────────── */
+
+@keyframes tireShadow {
+  0%, 4% {
+    opacity: 0;
+    transform: scaleX(0.3);
+  }
+  6% {
+    opacity: 0.14;
+  }
+  70% {
+    opacity: 0.28;
+    transform: scaleX(0.65);
+  }
+  85%, 100% {
+    opacity: 0.36;
+    transform: scaleX(0.82);
+  }
+}
+
+/* ─── Mobile ──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .hero-copy {
+    transform: translateY(-86px);
+  }
+
+  .hero-driving-scene {
+    right: 10px;
+    bottom: 14px;
+    width: 96vw;
+  }
+
+  .hero-cars {
+    height: 310px;
+  }
+
+  .driving-school-sign {
+    left: 48vw;
+    right: auto;
+    bottom: 245px;
+    min-width: 150px;
+    padding: 9px 12px;
+  }
+
+  .driving-school-sign::after {
+    height: 36px;
+  }
+
+  .driving-school-sign strong {
+    font-size: 19px;
+  }
+
+  .driving-school-sign small {
+    font-size: 9px;
+  }
+
+  .hero-car-clio {
+    width: 295px;
+  }
+
+  .hero-car-picanto {
+    width: 295px;
+  }
+
+  .hero-car-wrap-clio {
+    animation-name: clioSlideMobile;
+  }
+
+  .hero-car-wrap-picanto {
+    animation-name: picantoSlideMobile;
+  }
+}
+
+@keyframes clioSlideMobile {
+  0%    { opacity: 0; transform: translate(180px, -260px); }
+  5%    { opacity: 1; transform: translate(180px, -260px); }
+  70%   { opacity: 1; transform: translate(22px, -14px); }
+  85%, 100% { opacity: 1; transform: translate(12px, 0); }
+}
+
+@keyframes picantoSlideMobile {
+  0%    { opacity: 0; transform: translate(60px, -280px); }
+  5%    { opacity: 1; transform: translate(60px, -280px); }
+  70%   { opacity: 1; transform: translate(10px, -16px); }
+  85%, 100% { opacity: 1; transform: translate(-14px, 0); }
+}
+/* ─── Driving-school sign (stop.png) ─────────────────────── */
+.driving-school-sign {
+  position: absolute;
+  right: 250px;
+  bottom: 290px;
+  z-index: 10;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.driving-school-sign::after {
+  display: none;
+}
+
+.stop-sign-img {
+  width: clamp(120px, 15vw, 200px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.5));
+  animation: stopSignDrop 52s cubic-bezier(0.22, 1, 0.36, 1) 1 forwards;
+  animation-delay: 2s; /* ← même délai que picantoSlide */
+  animation-fill-mode: both; /* ← caché avant le départ */
+  transform-origin: 50% 50%;
+}
+
+@keyframes stopSignDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-400px) rotate(-15deg) scale(0.5);
+  }
+  5% {
+    opacity: 1;
+    transform: translateY(-400px) rotate(-15deg) scale(0.5);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-14px) rotate(4deg) scale(1.06);
+  }
+  75% {
+    transform: translateY(5px) rotate(-2deg) scale(0.97);
+  }
+  85%, 100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .driving-school-sign {
+    left: 10px;
+    bottom: 140px;
+  }
+
+  .stop-sign-img {
+    width: clamp(50px, 15vw, 75px);
+  }
+}

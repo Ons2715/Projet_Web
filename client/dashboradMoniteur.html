@@ -43,7 +43,7 @@
                 <h2 class="h3">Vue semaine</h2>
               </div>
               <div class="monitor-week-nav">
-                <button class="btn btn-outline btn-sm" type="button" id="prev-week-btn">Semaine precedente</button>
+                <button class="btn btn-outline btn-sm" type="button" id="prev-week-btn">Semaine précédente</button>
                 <div class="monitor-week-label" id="week-label"></div>
                 <button class="btn btn-outline btn-sm" type="button" id="next-week-btn">Semaine suivante</button>
               </div>
@@ -76,6 +76,22 @@
         </aside>
       </section>
     </main>
+  </div>
+
+  <div class="modal-overlay" id="monitor-cancel-booking-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Annuler la seance</h2>
+        <button class="btn btn-ghost btn-icon" type="button" id="close-monitor-cancel-booking-modal" aria-label="Fermer">x</button>
+      </div>
+      <div class="reclamation-form">
+        <p class="text-muted">Voulez-vous vraiment annuler cette seance ? Le candidat ne la verra plus dans son planning.</p>
+        <div class="planning-actions">
+          <button class="btn btn-primary" type="button" id="confirm-monitor-cancel-booking-btn">Confirmer l'annulation</button>
+          <button class="btn btn-ghost" type="button" id="cancel-monitor-cancel-booking-btn">Retour</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="shared.js"></script>

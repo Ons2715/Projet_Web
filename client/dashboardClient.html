@@ -66,12 +66,26 @@
           </article>
         </section>
 
+        <section class="card" id="client-notifications-card" hidden>
+          <div class="card-body">
+            <div class="section-header">
+              <div>
+                <p class="client-kicker">Notifications</p>
+                <h2 class="h3">Seances annulées</h2>
+              </div>
+              <span class="badge badge-accent" id="client-notification-count">0</span>
+            </div>
+
+            <div class="history-list" id="client-notification-list"></div>
+          </div>
+        </section>
+
         <section class="card">
           <div class="card-body">
             <div class="section-header">
               <div>
                 <p class="client-kicker">Mes seances</p>
-                <h2 class="h3">Historique recent</h2>
+                <h2 class="h3">Historique récent</h2>
               </div>
               <span class="badge badge-primary">Client</span>
             </div>
@@ -83,6 +97,7 @@
     </div>
     <script src="shared.js"></script>
     <script>
+      /// Dashboard client script
       const BOOKINGS_KEY = "EduCar_client_bookings";
       const user = Auth.get();
       function escapeHtml(value) {
@@ -93,16 +108,16 @@
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#039;");
       }
-
+// We use initials as fallback when the user doesn't have a profile photo. We try to get them from first and last name, but if those are not available, we also try to extract them from the full name or use "EC" as a default fallback.
       function getInitials(firstName = "", lastName = "") {
         return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "EC";
       }
-
+// In some cases, we might only have a full name without clear separation of first and last name, so we try to extract initials from the full name as well.
       function getInitialsFromName(name = "") {
         const parts = String(name).trim().split(/\s+/).filter(Boolean);
         return `${parts[0]?.charAt(0) || ""}${parts[1]?.charAt(0) || ""}`.toUpperCase() || "EC";
       }
-
+// For users without an API session, we store bookings in local storage. This function retrieves those bookings and handles any parsing errors gracefully.
       function getStoredBookings() {
         try {
           return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
@@ -110,9 +125,9 @@
           return [];
         }
       }
-
+// This function checks if the user has an active API session, which allows us to determine whether to fetch bookings from the server or rely on local storage. We also check the user's role to ensure they are a client/student.
       function hasApiSession() {
-        return Boolean(user && Auth.getToken() && user.role === "eleve");
+        return Boolean(user && Auth.getToken() && (user.role === "eleve" || user.role === "student" || user.serverRole === "eleve"));
       }
 
       function getMapsUrlFromPlace(place, mapsUrl) {
@@ -184,6 +199,7 @@
         if (hasApiSession()) {
           try {
             const rows = await Api.get("/bookings/me");
+            renderCancellationNotifications(rows);
             bookings = Array.isArray(rows)
               ? rows.filter((row) => row.statut !== "annulee").map(toHistoryBooking)
               : [];
@@ -225,6 +241,47 @@
             </article>`;
         }).join("");
       }
+// This function renders notifications for any cancelled bookings. If the user has an API session, we check for any bookings with a status of "annulee" and display them in a notifications section. If there are no cancelled bookings, the notifications section is hidden.
+      function renderCancellationNotifications(rows) {
+        const card = document.getElementById("client-notifications-card");
+        const list = document.getElementById("client-notification-list");
+        const count = document.getElementById("client-notification-count");
+        if (!card || !list || !count) return;
+
+        const cancelled = Array.isArray(rows)
+          ? rows.filter((row) => row.statut === "annulee").map(toHistoryBooking)
+          : [];
+
+        count.textContent = String(cancelled.length);
+        card.hidden = cancelled.length === 0;
+
+        if (!cancelled.length) {
+          list.innerHTML = "";
+          return;
+        }
+
+        list.innerHTML = cancelled
+          .slice()
+          .sort((a, b) => parseBookingDateTime(b) - parseBookingDateTime(a))
+          .slice(0, 5)
+          .map((booking) => {
+            const dt = parseBookingDateTime(booking);
+            const day = String(dt.getDate()).padStart(2, "0");
+            const monthLabel = normalizeMonthLabel(dt);
+            return `
+              <article class="history-item">
+                <div class="history-date">
+                  <span>${day}</span>
+                  <small>${escapeHtml(monthLabel)}</small>
+                </div>
+                <div class="history-content">
+                  <h3>${escapeHtml(booking.typeLabel || "Seance")} annulée</h3>
+                  <p>Votre moniteur a annule cette seance. Vous pouvez reserver un nouveau creneau.</p>
+                </div>
+                <span class="badge badge-accent">Annulee</span>
+              </article>`;
+          }).join("");
+      }
 
       function renderClientSummary(profile) {
         const currentUser = { ...(user || {}), ...(profile || {}) };
@@ -245,7 +302,7 @@
           document.getElementById("client-profile-photo").innerHTML = `<img src="${escapeHtml(photo)}" alt="Photo de profil" />`;
         }
       }
-
+// We load the user's profile from the API to get the most up-to-date information for the dashboard summary. If the API call fails, we still render the summary with whatever information we have from the local session.
       async function loadClientSummary() {
         if (!user || !user.id) {
           renderClientSummary(null);

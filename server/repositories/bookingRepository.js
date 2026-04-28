@@ -41,15 +41,24 @@ export async function findBookingById(id) {
   return rows[0] || null;
 }
 
-export async function findAssignedMonitorIdForStudent(studentId) {
+export async function findAssignedMonitorIdForStudent(studentId, options = {}) {
+  const recyclageBoite = String(options.recyclageBoite || "").toLowerCase();
   const [rows] = await pool.query(
     `SELECT m.id
      FROM eleves e
      JOIN moniteurs m ON m.id_formation = e.id_formation
+     JOIN utilisateurs um ON um.id = m.id
      WHERE e.id = ?
-     ORDER BY m.id ASC
+     ORDER BY
+       CASE
+         WHEN e.id_formation = 4 AND ? = 'manuelle' AND LOWER(um.nom) LIKE 'walid%' THEN 0
+         WHEN e.id_formation = 4 AND ? = 'manuelle' AND m.voiture = 'Renault Clio' THEN 1
+         WHEN e.id_formation = 4 AND ? = 'automatique' AND m.voiture = 'Kia Picanto' THEN 0
+         ELSE 2
+       END,
+       m.id ASC
      LIMIT 1`,
-    [studentId]
+    [studentId, recyclageBoite, recyclageBoite, recyclageBoite]
   );
 
   return rows[0]?.id || null;
@@ -57,10 +66,10 @@ export async function findAssignedMonitorIdForStudent(studentId) {
 
 export async function createBooking({ eleveId, moniteurId, dateLecon, dureeMinutes, adresseDepart, notesMoniteur }) {
   const [result] = await pool.query(
-    `INSERT INTO seances (eleve_id, moniteur_id, date_lecon, duree_minutes, adresse_depart, notes_moniteur)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [eleveId, moniteurId, dateLecon, dureeMinutes, adresseDepart, notesMoniteur]
-  );
+      `INSERT INTO seances (eleve_id, moniteur_id, date_lecon, duree_minutes, adresse_depart, notes_moniteur)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [eleveId, moniteurId, dateLecon, dureeMinutes, adresseDepart, notesMoniteur]
+    );
 
   const [rows] = await pool.query(`${BOOKING_SELECT} WHERE s.id = ?`, [result.insertId]);
   return rows[0] || null;

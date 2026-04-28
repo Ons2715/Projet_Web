@@ -64,9 +64,7 @@ CREATE TABLE moniteurs (
         ON DELETE RESTRICT ON UPDATE CASCADE
 );
  
--- ============================================================
---  SÉANCES
--- ============================================================
+
 CREATE TABLE seances (
     id             INT AUTO_INCREMENT PRIMARY KEY,
     eleve_id       INT      NOT NULL,
@@ -82,6 +80,26 @@ CREATE TABLE seances (
     FOREIGN KEY (moniteur_id) REFERENCES moniteurs(id) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE KEY uniq_moniteur_creneau (moniteur_id, date_lecon),
     UNIQUE KEY uniq_eleve_creneau    (eleve_id,    date_lecon)
+);
+
+CREATE TABLE reservations (
+    id                INT AUTO_INCREMENT PRIMARY KEY,
+    eleve_id          INT      NOT NULL,
+    moniteur_id       INT      NOT NULL,
+    date_reservation  DATETIME NOT NULL,
+    duree_minutes     INT      NOT NULL DEFAULT 60,
+    adresse_depart    TEXT,
+    statut            ENUM('reservee', 'terminee', 'annulee') NOT NULL DEFAULT 'reservee',
+    note_client       TEXT,
+    seance_id         INT NULL,
+    date_creation     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_reservation_duree CHECK (duree_minutes > 0),
+    FOREIGN KEY (eleve_id)    REFERENCES eleves(id)    ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (moniteur_id) REFERENCES moniteurs(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (seance_id)   REFERENCES seances(id)   ON DELETE SET NULL ON UPDATE CASCADE,
+    UNIQUE KEY uniq_reservation_moniteur_creneau (moniteur_id, date_reservation),
+    UNIQUE KEY uniq_reservation_eleve_creneau    (eleve_id, date_reservation),
+    UNIQUE KEY uniq_reservation_seance           (seance_id)
 );
  
 -- ============================================================

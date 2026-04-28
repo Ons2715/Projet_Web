@@ -108,6 +108,67 @@
         }
       }
 
+      function splitName(nom = "") {
+        const parts = String(nom).trim().split(/\s+/).filter(Boolean);
+        return {
+          firstName: parts[0] || "",
+          lastName: parts.slice(1).join(" ")
+        };
+      }
+
+      function applyServerProfile(profile) {
+        if (!profile) return;
+        const nameParts = splitName(profile.nom || profile.name || "");
+        user.firstName = profile.firstName || nameParts.firstName || user.firstName || "";
+        user.lastName = profile.lastName || nameParts.lastName || user.lastName || "";
+        user.name = profile.nom || profile.name || `${user.firstName} ${user.lastName}`.trim();
+        user.email = profile.email || user.email || "";
+        user.phone = profile.telephone || profile.phone || user.phone || "";
+        user.address = profile.adresse || profile.address || user.address || "";
+        user.photo = profile.photo || user.photo || "";
+        user.avatar = profile.photo || user.avatar || "";
+        user.formation = profile.formation_nom || user.formation || "";
+        user.serverRole = profile.role || user.serverRole || "eleve";
+        user.role = user.role || "student";
+        Auth.set(user);
+        if (user.email && (user.photo || user.avatar)) {
+          ProfilePhotos.set(user.email, user.photo || user.avatar);
+        }
+      }
+
+      function refreshProfileView() {
+        document.getElementById("profile-firstname").value = user.firstName || "";
+        document.getElementById("profile-lastname").value = user.lastName || "";
+        document.getElementById("profile-email").value = user.email || "";
+        document.getElementById("profile-phone").value = user.phone || "";
+        document.getElementById("profile-address").value = user.address || "";
+        document.getElementById("profile-formation").value = user.formation || "Aucune formation selectionnee";
+        document.getElementById("profile-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Candidat EduCar";
+        document.getElementById("profile-formation-badge").textContent = user.formation || "Aucune formation";
+        refreshProfilePhoto();
+      }
+
+      async function loadProfile() {
+        if (selectedFormation) {
+          user.formation = selectedFormation;
+          Auth.set(user);
+        }
+
+        if (!user.id || !Auth.getToken()) {
+          refreshProfileView();
+          return;
+        }
+
+        try {
+          const profile = await Api.get(`/users/${user.id}`);
+          applyServerProfile(profile);
+        } catch (error) {
+          Toast.error(error.message || "Impossible de charger le profil.");
+        }
+
+        refreshProfileView();
+      }
+
       const nav = document.getElementById("profile-nav");
       nav.innerHTML = isMonitor
         ? `
@@ -129,20 +190,6 @@
       document.getElementById("profile-back-link").href = isMonitor ? "./dashboradMoniteur.html" : "./dashboardClient.html";
       document.getElementById("profile-back-link").textContent = isMonitor ? "Retour planning" : "Retour";
 
-      document.getElementById("profile-firstname").value = user.firstName || "Jean";
-      document.getElementById("profile-lastname").value = user.lastName || "Dupont";
-      document.getElementById("profile-email").value = user.email || "";
-      document.getElementById("profile-phone").value = user.phone || "";
-      document.getElementById("profile-address").value = user.address || "";
-      if (selectedFormation) {
-        user.formation = selectedFormation;
-        Auth.set(user);
-      }
-      document.getElementById("profile-formation").value = user.formation || "Aucune formation selectionnee";
-      document.getElementById("profile-name-label").textContent = `${user.firstName || "Jean"} ${user.lastName || "Dupont"}`;
-      document.getElementById("profile-formation-badge").textContent = user.formation || "Aucune formation";
-      refreshProfilePhoto();
-
       document.getElementById("profile-photo-input").addEventListener("change", function () {
         const file = this.files && this.files[0];
         if (!file) return;
@@ -152,36 +199,49 @@
           return;
         }
         const reader = new FileReader();
-        reader.onload = function () {
+        reader.onload = async function () {
           user.photo = String(reader.result || "");
           user.avatar = user.photo;
           Auth.set(user);
           ProfilePhotos.set(user.email, user.photo);
           refreshProfilePhoto();
-          Toast.success("Photo de profil mise a jour.");
-          Api.patch("/users/me/photo", { photo: user.photo }).catch((error) => {
+          try {
+            const profile = await Api.patch("/users/me/photo", { photo: user.photo });
+            applyServerProfile(profile);
+            refreshProfileView();
+            Toast.success("Photo de profil mise a jour.");
+          } catch (error) {
             Toast.error(error.message || "Photo gardee localement pour le moment.");
-          });
+          }
         };
         reader.readAsDataURL(file);
       });
 
-      document.getElementById("profile-form").addEventListener("submit", function (event) {
+      document.getElementById("profile-form").addEventListener("submit", async function (event) {
         event.preventDefault();
-        user.firstName = document.getElementById("profile-firstname").value.trim();
-        user.lastName = document.getElementById("profile-lastname").value.trim();
-        user.email = document.getElementById("profile-email").value.trim();
-        user.phone = document.getElementById("profile-phone").value.trim();
-        user.address = document.getElementById("profile-address").value.trim();
-        Auth.set(user);
-        Toast.success(isMonitor ? "Profil moniteur mis a jour." : "Profil mis a jour.");
-        document.getElementById("profile-name-label").textContent = `${user.firstName || ""} ${user.lastName || ""}`.trim();
-        refreshProfilePhoto();
+        const payload = {
+          firstName: document.getElementById("profile-firstname").value.trim(),
+          lastName: document.getElementById("profile-lastname").value.trim(),
+          email: document.getElementById("profile-email").value.trim(),
+          telephone: document.getElementById("profile-phone").value.trim(),
+          adresse: document.getElementById("profile-address").value.trim()
+        };
+
+        try {
+          const profile = await Api.patch("/users/me", payload);
+          applyServerProfile(profile);
+          refreshProfileView();
+          Toast.success(isMonitor ? "Profil moniteur mis a jour." : "Profil mis a jour.");
+        } catch (error) {
+          Toast.error(error.message || "Impossible de mettre a jour le profil.");
+        }
       });
 
       document.getElementById("profile-logout-link").addEventListener("click", function () {
         Auth.clear();
       });
+
+      loadProfile();
     </script>
   </body>
 </html>

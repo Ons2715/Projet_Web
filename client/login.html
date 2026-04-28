@@ -5,363 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EduCar — Connexion</title>
     <link rel="stylesheet" href="shared.css" />
-    <style>
-      .auth-page {
-        min-height: 100vh;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-      }
-      @media (max-width: 900px) {
-        .auth-page {
-          grid-template-columns: 1fr;
-        }
-        .auth-left {
-          display: none !important;
-        }
-      }
-
-      .auth-left {
-        background: linear-gradient(
-          145deg,
-          #0b1c30 0%,
-          #1a3550 50%,
-          #0b1c30 100%
-        );
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 48px;
-        overflow: hidden;
-      }
-      .auth-left::before {
-        content: "";
-        position: absolute;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(
-          circle,
-          rgba(255, 177, 0, 0.15) 0%,
-          transparent 70%
-        );
-        top: -100px;
-        left: -100px;
-        pointer-events: none;
-      }
-      .auth-left::after {
-        content: "";
-        position: absolute;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(
-          circle,
-          rgba(183, 246, 74, 0.1) 0%,
-          transparent 70%
-        );
-        bottom: -100px;
-        right: -100px;
-        pointer-events: none;
-      }
-      .auth-brand {
-        font-family: var(--font-display);
-        font-size: 28px;
-        font-weight: 900;
-        color: #fff;
-        letter-spacing: -0.03em;
-      }
-      .auth-brand span {
-        color: var(--primary);
-      }
-      .auth-left-content {
-        position: relative;
-        z-index: 1;
-      }
-      .auth-tagline {
-        font-family: var(--font-display);
-        font-size: 36px;
-        font-weight: 700;
-        color: #fff;
-        line-height: 1.15;
-        letter-spacing: -0.02em;
-        margin-bottom: 16px;
-      }
-      .auth-tagline em {
-        color: var(--primary);
-        font-style: normal;
-      }
-      .auth-sub {
-        color: #94a3b8;
-        font-size: 15px;
-        line-height: 1.6;
-        margin-bottom: 32px;
-      }
-      .auth-stats {
-        display: flex;
-        gap: 32px;
-      }
-      .auth-stat-num {
-        font-family: var(--font-display);
-        font-size: 28px;
-        font-weight: 700;
-        color: #fff;
-      }
-      .auth-stat-label {
-        font-size: 12px;
-        color: #64748b;
-        margin-top: 2px;
-      }
-      .auth-left-footer {
-        color: #475569;
-        font-size: 13px;
-        position: relative;
-        z-index: 1;
-      }
-
-      .auth-right {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 48px 32px;
-        background: var(--surface);
-      }
-      .auth-box {
-        width: 100%;
-        max-width: 420px;
-      }
-      .auth-tabs {
-        display: flex;
-        background: var(--surface-low);
-        border-radius: var(--radius-lg);
-        padding: 4px;
-        margin-bottom: 32px;
-      }
-      .auth-tab {
-        flex: 1;
-        padding: 10px;
-        border-radius: var(--radius);
-        text-align: center;
-        font-family: var(--font-display);
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        border: none;
-        background: transparent;
-        transition: var(--transition);
-        color: var(--on-surface-muted);
-      }
-      .auth-tab.active {
-        background: #fff;
-        color: var(--on-surface);
-        box-shadow: var(--shadow-sm);
-      }
-      .auth-form-title {
-        font-family: var(--font-display);
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-      .auth-form-sub {
-        font-size: 14px;
-        color: var(--on-surface-muted);
-        margin-bottom: 28px;
-      }
-      .form-grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-      .form-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-      .auth-divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: var(--on-surface-muted);
-        font-size: 12px;
-        margin: 20px 0;
-      }
-      .auth-divider::before,
-      .auth-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: var(--border-light);
-      }
-      .auth-footer-link {
-        font-size: 13px;
-        color: var(--on-surface-muted);
-        text-align: center;
-        margin-top: 20px;
-      }
-      .auth-footer-link a {
-        color: var(--primary);
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .password-wrap {
-        position: relative;
-      }
-      .password-wrap .form-input {
-        padding-right: 44px;
-      }
-      .password-toggle {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--on-surface-muted);
-        font-size: 18px;
-        line-height: 1;
-      }
-      .form-check {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        color: var(--on-surface-muted);
-      }
-      .form-check input {
-        width: 16px;
-        height: 16px;
-        accent-color: var(--primary);
-      }
-      .panel {
-        display: none;
-      }
-      .panel.active {
-        display: block;
-      }
-      .loading-spinner {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-      .auth-inline-error {
-        display: none;
-        padding: 11px 13px;
-        border: 1px solid #f8b4b4;
-        border-radius: var(--radius);
-        background: #fff5f5;
-        color: #b42318;
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .auth-inline-error.show {
-        display: block;
-      }
-      .photo-step {
-        display: none;
-        width: 100%;
-        max-width: 460px;
-        padding: 30px;
-        border: 1px solid #ffe19a;
-        border-radius: var(--radius-xl);
-        background: #ffffff;
-        box-shadow: var(--shadow-lg);
-      }
-      .photo-step.active {
-        display: block;
-      }
-      .photo-step-kicker {
-        color: #e09800;
-        font-family: var(--font-display);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-      }
-      .photo-step h2 {
-        font-family: var(--font-display);
-        font-size: 26px;
-        margin-bottom: 8px;
-      }
-      .photo-step p {
-        color: var(--on-surface-muted);
-        font-size: 14px;
-        line-height: 1.6;
-        margin-bottom: 20px;
-      }
-      .photo-upload-box {
-        display: grid;
-        gap: 14px;
-        place-items: center;
-        min-height: 220px;
-        padding: 24px;
-        border: 2px dashed #ffc94d;
-        border-radius: var(--radius-lg);
-        background: #fffaf0;
-        text-align: center;
-        cursor: pointer;
-        transition: var(--transition);
-      }
-      .photo-upload-box:hover {
-        border-color: #e09800;
-        background: #fff6dc;
-      }
-      .photo-preview {
-        display: none;
-        width: 112px;
-        height: 112px;
-        border: 4px solid #ffdf7e;
-        border-radius: 999px;
-        background: #ffffff;
-        object-fit: cover;
-      }
-      .photo-upload-box.has-photo .photo-preview {
-        display: block;
-      }
-      .photo-upload-icon {
-        width: 70px;
-        height: 70px;
-        border-radius: 999px;
-        display: grid;
-        place-items: center;
-        background: #ffdf7e;
-        color: #0b1c30;
-        font-size: 30px;
-        font-weight: 900;
-      }
-      .photo-upload-box.has-photo .photo-upload-icon {
-        display: none;
-      }
-      .photo-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 20px;
-      }
-      .photo-actions .btn {
-        flex: 1;
-        justify-content: center;
-      }
-      .photo-error {
-        display: none;
-        margin-top: 12px;
-        color: #b42318;
-        font-size: 13px;
-        font-weight: 700;
-      }
-      .photo-error.show {
-        display: block;
-      }
-    </style>
+    
   </head>
   <body>
     <div class="auth-page">
@@ -370,31 +14,19 @@
         <div class="auth-brand">Edu<span>Car</span></div>
         <div class="auth-left-content">
           <h1 class="auth-tagline">
-            Votre permis,<br />votre <em>liberté.</em>
+            Votre permis,<br>votre <em>liberté.</em>
           </h1>
           <p class="auth-sub">
-            Rejoignez la plateforme d'auto-école la plus moderne de France.
+            Rejoignez la plateforme d'auto-école la plus moderne de Tunisie.
             Cours en ligne, réservation instantanée, suivi personnalisé.
           </p>
-          <div class="auth-stats">
-            <div>
-              <div class="auth-stat-num">12 000+</div>
-              <div class="auth-stat-label">Élèves formés</div>
-            </div>
-            <div>
-              <div class="auth-stat-num">94%</div>
-              <div class="auth-stat-label">Taux de réussite</div>
-            </div>
-            <div>
-              <div class="auth-stat-num">4.9 ★</div>
-              <div class="auth-stat-label">Note moyenne</div>
-            </div>
-          </div>
+          
         </div>
         <div class="auth-left-footer">© 2026 EduCar · Mentions légales</div>
       </div>
 
       <!-- Right panel -->
+       <!-- Contient les formulaires de connexion et d'inscription -->
       <div class="auth-right">
         <div class="auth-box">
           <div class="auth-tabs">
@@ -450,28 +82,7 @@
                   </button>
                 </div>
               </div>
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                "
-              >
-                <label class="form-check"
-                  ><input type="checkbox" id="remember" /> Se souvenir de
-                  moi</label
-                >
-                <a
-                  href="#"
-                  style="
-                    font-size: 13px;
-                    color: var(--primary);
-                    font-weight: 600;
-                    text-decoration: none;
-                  "
-                  >Mot de passe oublié ?</a
-                >
-              </div>
+              
               <div class="auth-inline-error" id="login-inline-error"></div>
               <button
                 class="btn btn-primary"
@@ -500,7 +111,7 @@
                     class="form-input"
                     type="text"
                     id="reg-firstname"
-                    placeholder="foulen"
+                    placeholder="ons"
                     required
                   />
                 </div>
@@ -510,7 +121,7 @@
                     class="form-input"
                     type="text"
                     id="reg-lastname"
-                    placeholder="ben foulen"
+                    placeholder="ben chaabene"
                     required
                   />
                 </div>
@@ -531,7 +142,7 @@
                   class="form-input"
                   type="tel"
                   id="reg-phone"
-                  placeholder="+216 00 00 00 00"
+                  placeholder="XX XXX XXX"
                   required
                 />
               </div>
@@ -580,10 +191,8 @@
               </div>
               <label class="form-check">
                 <input type="checkbox" id="reg-terms" required />
-                J'accepte les
-                <a href="#" style="color: var(--primary)"
-                  >conditions générales</a
-                >
+                J'accepte les conditions générales d'utilisation
+          
               </label>
               <div class="auth-inline-error" id="register-inline-error"></div>
               <button
@@ -608,7 +217,7 @@
               <img class="photo-preview" id="photo-preview" alt="Apercu de la photo" />
               <span class="photo-upload-icon">+</span>
               <strong id="photo-upload-title">Choisir une photo</strong>
-              <span class="text-muted">Formats acceptes : JPG, PNG ou WebP</span>
+              <span class="text-muted">Formats acceptés : JPG, PNG ou WebP</span>
             </label>
             <input id="profile-photo" type="file" accept="image/*" required hidden />
             <div class="photo-error" id="photo-error">Veuillez ajouter une photo avant de continuer.</div>
@@ -623,6 +232,7 @@
 
     <script src="shared.js"></script>
     <script>
+      // Variables pour stocker l'utilisateur en cours d'inscription et la photo sélectionnée
       let pendingRegisteredUser = null;
       let selectedProfilePhoto = "";
 
@@ -639,26 +249,26 @@
         errorBox.textContent = message;
         errorBox.classList.toggle("show", Boolean(message));
       }
-
+//pour les cards de formation dans la page de choix de formation
       function setPhotoError(message = "") {
         const errorBox = document.getElementById("photo-error");
         if (!errorBox) return;
         errorBox.textContent = message;
         errorBox.classList.toggle("show", Boolean(message));
       }
-
+//pour les cards de formation dans la page de choix de formation
       function showAuthPanels() {
         document.querySelector(".auth-tabs").style.display = "";
         document.getElementById("photo-step").classList.remove("active");
       }
-
+//pour les cards de formation dans la page de choix de formation
       function showPhotoStep() {
         document.querySelector(".auth-tabs").style.display = "none";
         document.getElementById("panel-login").classList.remove("active");
         document.getElementById("panel-register").classList.remove("active");
         document.getElementById("photo-step").classList.add("active");
       }
-
+//pour les cards de formation dans la page de choix de formation
       // Switch between login / register tabs
       function switchTab(tab) {
         showAuthPanels();
@@ -686,7 +296,7 @@
           document.getElementById("photo-upload-box").classList.remove("has-photo");
           return;
         }
-
+// Validate file type
         if (!file.type.startsWith("image/")) {
           selectedProfilePhoto = "";
           this.value = "";
@@ -694,7 +304,7 @@
           document.getElementById("photo-upload-box").classList.remove("has-photo");
           return;
         }
-
+// Validate file size (max 5MB)
         const reader = new FileReader();
         reader.onload = function () {
           selectedProfilePhoto = String(reader.result || "");
@@ -710,7 +320,7 @@
         showAuthPanels();
         switchTab("register");
       }
-
+//pour les cards de formation dans la page de choix de formation
       async function confirmPhotoAndPay() {
         if (!selectedProfilePhoto) {
           setPhotoError("Veuillez ajouter une photo avant de continuer.");
@@ -739,7 +349,7 @@
           button.disabled = false;
         }
       }
-
+//pour les cards de formation dans la page de choix de formation
       function getDashboardByRole(user) {
         if (user && (user.role === "admin" || user.serverRole === "admin")) {
           return "adminUsers.html";
@@ -749,7 +359,7 @@
           : "dashboardClient.html";
       }
 
-      // Password visibility toggle
+//pour les cards de formation dans la page de choix de formation
       function togglePassword(id, btn) {
         const inp = document.getElementById(id);
         inp.type = inp.type === "password" ? "text" : "password";

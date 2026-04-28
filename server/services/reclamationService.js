@@ -50,7 +50,7 @@ export async function treatReclamation(id) {
     throw error;
   }
 
-  const updatedReclamation = await updateReclamationStatus(id, "en_cours");
+  const updatedReclamation = await updateReclamationStatus(id, "traitee");
 
   if (updatedReclamation?.utilisateur_email) {
     await sendReclamationProcessingEmail({

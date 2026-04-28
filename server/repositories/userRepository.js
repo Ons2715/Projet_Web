@@ -4,8 +4,8 @@ export async function listUsers() {
   const [rows] = await pool.query(
     `SELECT u.id, u.nom, u.email, u.role, u.telephone, u.photo_profil AS photo, u.date_creation,
             m.voiture, m.id_formation,
-            f.nom AS formation_nom,
-            f.heures_totales,
+            COALESCE(fe.nom, fm.nom) AS formation_nom,
+            COALESCE(fe.heures_totales, fm.heures_totales) AS heures_totales,
             e.heures_effectuees,
             CASE
               WHEN u.role = 'eleve' AND e.id_formation = 2 THEN (
@@ -41,7 +41,8 @@ export async function listUsers() {
      FROM utilisateurs u
      LEFT JOIN eleves e ON e.id = u.id
      LEFT JOIN moniteurs m ON m.id = u.id
-     LEFT JOIN formations f ON f.id = e.id_formation
+     LEFT JOIN formations fe ON fe.id = e.id_formation
+     LEFT JOIN formations fm ON fm.id = m.id_formation
      ORDER BY u.date_creation DESC`
   );
 
@@ -51,17 +52,32 @@ export async function listUsers() {
 export async function findUserById(id) {
   const [rows] = await pool.query(
     `SELECT u.id, u.nom, u.email, u.role, u.telephone, u.adresse, u.photo_profil AS photo, u.date_creation,
-            f.nom AS formation_nom,
-            f.heures_totales,
-            e.heures_effectuees
+            COALESCE(fe.nom, fm.nom) AS formation_nom,
+            COALESCE(fe.heures_totales, fm.heures_totales) AS heures_totales,
+            e.heures_effectuees,
+            m.voiture,
+            m.id_formation
      FROM utilisateurs u
      LEFT JOIN eleves e ON e.id = u.id
-     LEFT JOIN formations f ON f.id = e.id_formation
+     LEFT JOIN moniteurs m ON m.id = u.id
+     LEFT JOIN formations fe ON fe.id = e.id_formation
+     LEFT JOIN formations fm ON fm.id = m.id_formation
      WHERE u.id = ?`,
     [id]
   );
 
   return rows[0] || null;
+}
+
+export async function updateUserProfileById(userId, { nom, email, telephone, adresse }) {
+  const [result] = await pool.query(
+    `UPDATE utilisateurs
+     SET nom = ?, email = ?, telephone = ?, adresse = ?
+     WHERE id = ?`,
+    [nom, email, telephone, adresse, userId]
+  );
+
+  return result.affectedRows > 0;
 }
 
 export async function deleteUserById(id) {

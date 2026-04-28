@@ -8,6 +8,7 @@ let selectedBookingId = "";
 let selectedDayKey = formatDateKey(new Date());
 let openedCandidateId = "";
 let apiBookingsCache = null;
+let pendingMonitorCancelBookingId = "";
 
 function getStoredBookings() {
   try { return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]"); }
@@ -18,7 +19,7 @@ function saveStoredBookings(bookings) {
 }
 function isApiMode() {
   const user = Auth.get();
-  return Boolean(user && Auth.getToken() && user.role === "moniteur");
+  return Boolean(user && Auth.getToken() && (user.role === "moniteur" || user.role === "monitor" || user.serverRole === "moniteur"));
 }
 function getMapsUrlFromPlace(place, mapsUrl) {
   if (mapsUrl) return mapsUrl;
@@ -76,6 +77,9 @@ function formatWeekRange(startDate) {
 }
 function formatLongDate(dateKey) {
   return new Date(`${dateKey}T12:00:00`).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function formatCardDate(dateKey) {
+  return new Date(`${dateKey}T12:00:00`).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"});
 }
 function getBookingId(b) {
   if (b && (b.id !== undefined && b.id !== null) && String(b.id) !== "") return String(b.id);
@@ -191,9 +195,12 @@ function renderCalendar(bookings) {
           class="exam-card exam-card-client ${selected}"
           style="position:absolute; top:${top}px; height:${height}px; left:6px; right:6px; width:auto; margin:0; box-sizing:border-box;"
           onclick="selectBooking('${escapeAttribute(b._id)}','${b.date}')"
+          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectBooking('${escapeAttribute(b._id)}','${escapeAttribute(b.date)}')}"
+          role="button"
+          tabindex="0"
         >
           <span class="exam-time">${b.time||"--:--"}</span>
-          <button class="exam-candidate-name" type="button" onclick="openCandidateWindow('${escapeAttribute(b._id)}',event)">${escapeHtml(getStudentName(b))}</button>
+          <strong class="exam-candidate-name">${escapeHtml(getStudentName(b))}</strong>
         </article>`;
     }).join("");
 
@@ -289,8 +296,11 @@ function renderSelectedBooking(bookings) {
         <strong>Note</strong>
         <p>${escapeHtml(b.note||"Aucune note.")}</p>
       </div>
+      <div class="monitor-booking-meta">
+        <span><strong>Statut :</strong> ${escapeHtml(b.statut || "reservee")}</span>
+      </div>
       ${historyHtml}
-      <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking('${b._id}')">Annuler la seance</button>
+      ${b.statut !== "terminee" ? `<button class="btn btn-outline btn-sm" type="button" onclick="openCancelBookingModal('${b._id}')">Annuler la seance</button>` : ""}
     </article>`;
 }
 
@@ -355,6 +365,24 @@ function closeCandidateWindow(event) {
   openedCandidateId = "";
   renderAll();
 }
+function openCancelBookingModal(bookingId) {
+  pendingMonitorCancelBookingId = bookingId;
+  document.getElementById("monitor-cancel-booking-modal").classList.add("open");
+}
+
+function closeCancelBookingModal() {
+  pendingMonitorCancelBookingId = "";
+  document.getElementById("monitor-cancel-booking-modal").classList.remove("open");
+}
+
+function confirmCancelBooking() {
+  if (!pendingMonitorCancelBookingId) {
+    return;
+  }
+
+  cancelBooking(pendingMonitorCancelBookingId);
+}
+
 function cancelBooking(bookingId) {
   if (isApiMode()) {
     Api.delete(`/bookings/${bookingId}`)
@@ -364,6 +392,7 @@ function cancelBooking(bookingId) {
         if (!hydrated.some(b => b._id === selectedBookingId)) selectedBookingId = hydrated[0]?._id || "";
         renderAll();
         Toast.success("Seance annulee.");
+        closeCancelBookingModal();
       })
       .catch((error) => Toast.error(error.message));
     return;
@@ -375,6 +404,7 @@ function cancelBooking(bookingId) {
   if (!hydrated.some(b => b._id === selectedBookingId)) selectedBookingId = hydrated[0]?._id || "";
   renderAll();
   Toast.success("Seance annulee.");
+  closeCancelBookingModal();
 }
 
 function renderAll() {
@@ -416,6 +446,14 @@ if (monitorUser.formation) {
   if (el) el.textContent = monitorUser.formation;
 }
 document.getElementById("monitor-logout-link").addEventListener("click", () => Auth.clear());
+document.getElementById("close-monitor-cancel-booking-modal").addEventListener("click", closeCancelBookingModal);
+document.getElementById("cancel-monitor-cancel-booking-btn").addEventListener("click", closeCancelBookingModal);
+document.getElementById("confirm-monitor-cancel-booking-btn").addEventListener("click", confirmCancelBooking);
+document.getElementById("monitor-cancel-booking-modal").addEventListener("click", function (event) {
+  if (event.target === this) {
+    closeCancelBookingModal();
+  }
+});
 
 async function initializeMonitorDashboard() {
   if (isApiMode()) {
@@ -449,3 +487,4 @@ async function initializeMonitorDashboard() {
 }
 
 initializeMonitorDashboard();
+

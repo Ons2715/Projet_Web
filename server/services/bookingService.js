@@ -7,6 +7,7 @@ import {
   updateBookingStatus,
   findBookingById
 } from "../repositories/bookingRepository.js";
+import { sendBookingCancellationEmail } from "./mailService.js";
 
 export async function getBookings() {
   return listBookings();
@@ -56,7 +57,9 @@ function getDateTime(date, time) {
 }
 
 export async function addBookingForStudent(studentId, payload) {
-  const moniteurId = await findAssignedMonitorIdForStudent(studentId);
+  const moniteurId = await findAssignedMonitorIdForStudent(studentId, {
+    recyclageBoite: payload.recyclageBoite
+  });
 
   if (!moniteurId) {
     const error = new Error("Aucun moniteur n'est lie a votre formation.");
@@ -112,9 +115,34 @@ export async function cancelBookingForUser(user, bookingId) {
     throw error;
   }
 
+  if (booking.statut === "terminee") {
+    const error = new Error("Cette seance est deja marquee comme terminee.");
+    error.status = 409;
+    throw error;
+  }
+
   if (booking.statut === "annulee") {
     return booking;
   }
 
-  return updateBookingStatus(id, "annulee");
+  const updatedBooking = await updateBookingStatus(id, "annulee");
+
+  if (user.role === "moniteur" && booking.eleve_email) {
+    try {
+      await sendBookingCancellationEmail({
+        email: booking.eleve_email,
+        nom: booking.eleve_nom,
+        date: booking.date,
+        time: booking.time,
+        monitorName: booking.moniteur_nom
+      });
+      console.log(`Email annulation seance envoye a ${booking.eleve_email}`);
+    } catch (error) {
+      console.error("Erreur email annulation seance:", error.message);
+    }
+  } else if (user.role === "moniteur") {
+    console.warn(`Email annulation seance ignore: aucun email candidat pour la reservation ${id}.`);
+  }
+
+  return updatedBooking;
 }

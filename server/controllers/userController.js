@@ -1,4 +1,4 @@
-import { addUserProfile, deleteUserProfile, getUserById, getUsers, updateMyFormation, updateMyPhoto } from "../services/userService.js";
+import { addUserProfile, deleteUserProfile, getUserById, getUsers, updateMyFormation, updateMyPhoto, updateMyProfile } from "../services/userService.js";
 
 export async function listAllUsers(req, res) {
   const users = await getUsers();
@@ -27,5 +27,10 @@ export async function updateCurrentUserFormation(req, res) {
 
 export async function updateCurrentUserPhoto(req, res) {
   const user = await updateMyPhoto(req.user.id, req.body.photo);
+  res.json(user);
+}
+
+export async function updateCurrentUserProfile(req, res) {
+  const user = await updateMyProfile(req.user.id, req.body);
   res.json(user);
 }

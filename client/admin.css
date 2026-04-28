@@ -5,7 +5,7 @@
 .admin-layout {
   display: block;
 }
-
+/*pour les cards de formation dans la page de choix de formation */
 .admin-toolbar,
 .admin-form-actions,
 .admin-reclamation-head {
@@ -14,19 +14,19 @@
   justify-content: space-between;
   gap: 14px;
 }
-
+/*pour les cards de formation dans la page de choix de formation */
 .admin-table-wrap {
   overflow-x: auto;
 }
-
+/*pour les cards de formation dans la page de choix de formation */
 .admin-role-filter {
   max-width: 180px;
 }
-
+/*pour les cards de formation dans la page de choix de formation */
 .admin-search-input {
   width: min(280px, 100%);
 }
-
+/*pour les cards de formation dans la page de choix de formation */
 .admin-toolbar-actions {
   display: flex;
   gap: 10px;
@@ -34,23 +34,23 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
-
+  /*pour les cards de formation dans la page de choix de formation*/
 .admin-form {
   display: grid;
   gap: 16px;
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
 .admin-form [hidden] {
   display: none !important;
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
 .admin-user-modal {
   max-width: 520px;
   max-height: calc(100vh - 48px);
   overflow: auto;
   padding: 30px;
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
 .admin-profile-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -60,7 +60,7 @@
   border-radius: var(--radius-lg);
   background: var(--surface-low);
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
 .admin-profile-option {
   display: grid;
   gap: 3px;
@@ -172,7 +172,7 @@
 .admin-reclamation-user h3 {
   margin: 0;
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
 .admin-reclamation-user span {
   color: var(--on-surface-muted);
   font-size: 12px;
@@ -184,7 +184,7 @@
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
 .admin-reclamation-actions {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -195,13 +195,14 @@
 .admin-reclamation-treat-action {
   justify-self: end;
 }
-
+/*media pour les cards de formation dans la page de choix de formation*/
 @media (max-width: 1060px) {
   .admin-layout {
     grid-template-columns: 1fr;
   }
 }
-
+/*pour les cards de formation dans la page de choix de formation*/
+/*media serve a rendre les elements de la page plus adaptables sur les petits ecrans en les empilant verticalement et en ajustant les largeurs des elements de la toolbar*/
 @media (max-width: 640px) {
   .admin-toolbar,
   .admin-form-actions,

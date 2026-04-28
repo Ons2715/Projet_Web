@@ -40,6 +40,7 @@ function toClientUser(user) {
     photo: user.photo_profil || "",
     avatar: user.photo_profil || "",
     formation: user.formation_nom || "Permis B",
+    voiture: user.voiture || "",
     heuresEffectuees: user.heures_effectuees ?? 0,
     heuresTotales: user.heures_totales ?? 0
   };

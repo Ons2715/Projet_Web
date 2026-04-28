@@ -30,10 +30,9 @@
       <header class="client-topbar monitor-topbar">
         <div>
           <p class="client-kicker">Profil Moniteur</p>
-          <h1 class="h2">Mes coordonnees</h1>
-          <p class="text-muted">Mettez a jour votre identite, votre telephone et votre adresse depuis votre espace moniteur.</p>
+          <h1 class="h2">Mes coordonnées</h1>
+          <p class="text-muted">Mettez à jour votre identité, votre téléphone et votre adresse depuis votre espace moniteur.</p>
         </div>
-        <a class="btn btn-outline" href="./dashboradMoniteur.html">Retour planning</a>
       </header>
 
       
@@ -52,7 +51,7 @@
             <div>
               <p class="client-kicker">Photo de profil</p>
               <h3 class="h4" id="monitor-profile-name-label">Moniteur EduCar</h3>
-              <span class="badge badge-primary" id="monitor-profile-formation-badge">Permis B</span>
+              <span class="badge badge-primary" id="monitor-profile-car-badge">Voiture</span>
             </div>
           </div>
 
@@ -89,8 +88,8 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="monitor-profile-formation">Formation</label>
-              <input class="form-input" id="monitor-profile-formation" type="text" readonly />
+              <label class="form-label" for="monitor-profile-car">Voiture</label>
+              <input class="form-input" id="monitor-profile-car" type="text" readonly />
             </div>
 
             <div class="profile-form-actions">
@@ -120,32 +119,88 @@
       }
     }
 
+    function splitName(nom = "") {
+      const parts = String(nom).trim().split(/\s+/).filter(Boolean);
+      return {
+        firstName: parts[0] || "",
+        lastName: parts.slice(1).join(" ")
+      };
+    }
+
+    function applyServerProfile(profile) {
+      if (!profile) return;
+      const nameParts = splitName(profile.nom || profile.name || "");
+      monitorUser.firstName = profile.firstName || nameParts.firstName || monitorUser.firstName || "";
+      monitorUser.lastName = profile.lastName || nameParts.lastName || monitorUser.lastName || "";
+      monitorUser.name = profile.nom || profile.name || `${monitorUser.firstName} ${monitorUser.lastName}`.trim();
+      monitorUser.email = profile.email || monitorUser.email || "";
+      monitorUser.phone = profile.telephone || profile.phone || monitorUser.phone || "";
+      monitorUser.address = profile.adresse || profile.address || monitorUser.address || "";
+      monitorUser.photo = profile.photo || monitorUser.photo || "";
+      monitorUser.avatar = profile.photo || monitorUser.avatar || "";
+      monitorUser.formation = profile.formation_nom || monitorUser.formation || "";
+      monitorUser.voiture = profile.voiture || profile.voiture_affectee || monitorUser.voiture || "";
+      monitorUser.idFormation = profile.id_formation || profile.idFormation || monitorUser.idFormation || "";
+      monitorUser.serverRole = profile.role || monitorUser.serverRole || "moniteur";
+      monitorUser.role = monitorUser.role || "monitor";
+      Auth.set(monitorUser);
+    }
+
+    function getMonitorCarLabel() {
+      if (monitorUser.voiture) return monitorUser.voiture;
+
+      const formationId = String(monitorUser.idFormation || "");
+      const formation = String(monitorUser.formation || "").toLowerCase();
+
+      if (formationId === "2" || formation.includes("automatique")) return "Kia Picanto";
+      if (formationId === "1" || formationId === "4" || formation.includes("manuelle") || formation.includes("recyclage")) return "Renault Clio";
+      return "Voiture non renseignee";
+    }
+
     function syncMonitorProfile() {
       localStorage.setItem(MONITOR_PROFILE_KEY, JSON.stringify({
-        firstName: monitorUser.firstName || "Mourad",
-        lastName: monitorUser.lastName || "Ben Salah",
-        phone: monitorUser.phone || "+216 20 000 000",
+        firstName: monitorUser.firstName || "",
+        lastName: monitorUser.lastName || "",
+        phone: monitorUser.phone || "",
+        email: monitorUser.email || "",
+        voiture: monitorUser.voiture || "",
+        formation: monitorUser.formation || "",
+        idFormation: monitorUser.idFormation || "",
         photo: monitorUser.photo || monitorUser.avatar || ""
       }));
     }
 
     function refreshMonitorProfileView() {
-      const fullName = `${monitorUser.firstName || "Jean"} ${monitorUser.lastName || "Dupont"}`.trim();
-      const formation = monitorUser.formation || "Permis B";
-      const phone = monitorUser.phone || "-";
+      const fullName = `${monitorUser.firstName || ""} ${monitorUser.lastName || ""}`.trim() || monitorUser.name || "Moniteur EduCar";
+      const voiture = getMonitorCarLabel();
 
       document.getElementById("monitor-profile-name-label").textContent = fullName;
-      document.getElementById("monitor-profile-formation-badge").textContent = formation;
-      document.getElementById("monitor-profile-phone-stat").textContent = phone;
-      document.getElementById("monitor-profile-formation-stat").textContent = formation;
+      document.getElementById("monitor-profile-car-badge").textContent = voiture;
 
-      document.getElementById("monitor-profile-firstname").value = monitorUser.firstName || "Jean";
-      document.getElementById("monitor-profile-lastname").value = monitorUser.lastName || "Dupont";
+      document.getElementById("monitor-profile-firstname").value = monitorUser.firstName || "";
+      document.getElementById("monitor-profile-lastname").value = monitorUser.lastName || "";
       document.getElementById("monitor-profile-email").value = monitorUser.email || "";
       document.getElementById("monitor-profile-phone").value = monitorUser.phone || "";
       document.getElementById("monitor-profile-address").value = monitorUser.address || "";
-      document.getElementById("monitor-profile-formation").value = formation;
+      document.getElementById("monitor-profile-car").value = voiture;
       refreshMonitorPhoto();
+    }
+
+    async function loadMonitorProfile() {
+      if (!monitorUser.id || !Auth.getToken()) {
+        refreshMonitorProfileView();
+        return;
+      }
+
+      try {
+        const profile = await Api.get(`/users/${monitorUser.id}`);
+        applyServerProfile(profile);
+        syncMonitorProfile();
+      } catch (error) {
+        Toast.error(error.message || "Impossible de charger le profil moniteur.");
+      }
+
+      refreshMonitorProfileView();
     }
 
     document.getElementById("monitor-profile-photo-input").addEventListener("change", function () {
@@ -172,27 +227,32 @@
       reader.readAsDataURL(file);
     });
 
-    document.getElementById("monitor-profile-form").addEventListener("submit", function (event) {
+    document.getElementById("monitor-profile-form").addEventListener("submit", async function (event) {
       event.preventDefault();
-      monitorUser.firstName = document.getElementById("monitor-profile-firstname").value.trim();
-      monitorUser.lastName = document.getElementById("monitor-profile-lastname").value.trim();
-      monitorUser.email = document.getElementById("monitor-profile-email").value.trim();
-      monitorUser.phone = document.getElementById("monitor-profile-phone").value.trim();
-      monitorUser.address = document.getElementById("monitor-profile-address").value.trim();
-      monitorUser.role = "monitor";
-      Auth.set(monitorUser);
-      syncMonitorProfile();
-      refreshMonitorProfileView();
-      refreshMonitorPhoto();
-      Toast.success("Profil moniteur mis a jour.");
+      const payload = {
+        firstName: document.getElementById("monitor-profile-firstname").value.trim(),
+        lastName: document.getElementById("monitor-profile-lastname").value.trim(),
+        email: document.getElementById("monitor-profile-email").value.trim(),
+        telephone: document.getElementById("monitor-profile-phone").value.trim(),
+        adresse: document.getElementById("monitor-profile-address").value.trim()
+      };
+
+      try {
+        const profile = await Api.patch("/users/me", payload);
+        applyServerProfile(profile);
+        syncMonitorProfile();
+        refreshMonitorProfileView();
+        Toast.success("Profil moniteur mis a jour.");
+      } catch (error) {
+        Toast.error(error.message || "Impossible de mettre a jour le profil.");
+      }
     });
 
     document.getElementById("monitor-profile-logout-link").addEventListener("click", function () {
       Auth.clear();
     });
 
-    syncMonitorProfile();
-    refreshMonitorProfileView();
+    loadMonitorProfile();
   </script>
 </body>
 </html>

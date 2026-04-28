@@ -52,6 +52,7 @@ let selectedTypeId = SESSION_TYPES[0].id;
 let selectedSlot = "";
 let selectedReclamationIndex = -1;
 let serverBookings = [];
+let pendingBookingCancelId = null;
 
 function normalizeDate(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -89,7 +90,7 @@ let upcomingBookingsCache = [];
 
 function hasApiSession() {
   const user = Auth.get();
-  return Boolean(user && Auth.getToken() && user.role === "eleve");
+  return Boolean(user && Auth.getToken() && (user.role === "eleve" || user.role === "student" || user.serverRole === "eleve"));
 }
 
 function getMapsUrlFromPlace(place, mapsUrl) {
@@ -112,6 +113,7 @@ function toUpcomingBooking(raw) {
     serverId: raw.id ?? raw.serverId ?? null,
     date,
     time,
+    statut: raw.statut ?? "confirmee",
     duration,
     typeId: raw.typeId || (durationMinutes >= 120 ? "2h" : "1h"),
     typeLabel: raw.typeLabel || (durationMinutes >= 120 ? "2 heures" : "1 heure"),
@@ -120,7 +122,7 @@ function toUpcomingBooking(raw) {
     note: raw.notes_moniteur ?? raw.note ?? ""
   };
 }
-
+//pour les cards de formation dans la page de choix de formation  
 async function getUpcomingBookings() {
   if (!hasApiSession()) {
     return getStoredBookings();
@@ -131,7 +133,7 @@ async function getUpcomingBookings() {
     ? rows.filter((row) => row.statut !== "annulee").map(toUpcomingBooking)
     : [];
 }
-
+//pour les cards de formation dans la page de choix de formation
 function getMonitorProfile() {
   try {
     const storedProfile = JSON.parse(localStorage.getItem(MONITOR_PROFILE_KEY) || "null");
@@ -147,12 +149,12 @@ function getMonitorProfile() {
 
   return DEFAULT_MONITOR_PROFILE;
 }
-
+//pour les cards de formation dans la page de choix de formation
 function getInitials(firstName, lastName) {
   const initials = `${(firstName || "").charAt(0)}${(lastName || "").charAt(0)}`.toUpperCase();
   return initials || "MD";
 }
-
+//pour les cards de formation dans la page de choix de formation
 function splitName(name = "") {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   return {
@@ -160,7 +162,7 @@ function splitName(name = "") {
     lastName: parts.slice(1).join(" ")
   };
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderMonitorProfile(monitorProfile = getMonitorProfile()) {
   const fullName = monitorProfile.nom || `${monitorProfile.firstName || ""} ${monitorProfile.lastName || ""}`.trim();
   const nameParts = splitName(fullName);
@@ -178,7 +180,7 @@ function renderMonitorProfile(monitorProfile = getMonitorProfile()) {
     photoBox.innerHTML = `<span id="monitor-photo-fallback">${getInitials(firstName, lastName)}</span>`;
   }
 }
-
+//pour les cards de formation dans la page de choix de formation
 async function loadAssignedMonitor() {
   if (!planningUser || !planningUser.id || !Auth.getToken()) {
     renderMonitorProfile();
@@ -193,7 +195,7 @@ async function loadAssignedMonitor() {
     Toast.error(error.message || "Impossible de charger les coordonnees du moniteur.");
   }
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderPlanningLeçons() {
   document.getElementById("planning-Leçons-list").innerHTML = PLANNING_LeçonS.map((Leçon, index) => `
     <article class="planning-Leçon-item">
@@ -207,7 +209,7 @@ function renderPlanningLeçons() {
     </article>
   `).join("");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function getDaySlots(date) {
   const hours = [];
   for (let hour = 7; hour <= 18; hour++) {
@@ -216,7 +218,7 @@ function getDaySlots(date) {
   }
   return hours;
 }
-
+//pour les cards de formation dans la page de choix de formation
 function getBookingDateKey(booking) {
   if (booking.date) return booking.date;
   if (booking.date_lecon) return formatDateKey(new Date(booking.date_lecon));
@@ -237,7 +239,7 @@ function isSlotBooked(dateKey, slot) {
     getBookingTime(booking) === slot
   );
 }
-
+//pour les cards de formation dans la page de choix de formation
 function isSlotPastOrCurrent(dateKey, slot) {
   const now = new Date();
   const slotDate = new Date(`${dateKey}T${slot}:00`);
@@ -251,7 +253,7 @@ function getSlotUnavailableReason(dateKey, slot) {
   if (isSlotBooked(dateKey, slot)) return "Deja reserve";
   return "";
 }
-
+//pour les cards de formation dans la page de choix de formation
 async function loadServerBookings() {
   if (!Auth.getToken()) return;
 
@@ -262,13 +264,13 @@ async function loadServerBookings() {
     Toast.error(error.message || "Impossible de charger les creneaux reserves.");
   }
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderWeekDays() {
   document.getElementById("calendar-weekdays").innerHTML = WEEK_DAYS.map((day) => `
     <div class="planning-weekday">${day}</div>
   `).join("");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderCalendar() {
   const year = monthCursor.getFullYear();
   const month = monthCursor.getMonth();
@@ -283,7 +285,7 @@ function renderCalendar() {
   for (let i = 0; i < firstIndex; i++) {
     cells.push(`<button class="planning-day is-empty" type="button" aria-hidden="true"></button>`);
   }
-
+//pour les cards de formation dans la page de choix de formation
   for (let day = 1; day <= totalDays; day++) {
     const currentDate = new Date(year, month, day);
     const currentKey = formatDateKey(currentDate);
@@ -305,7 +307,7 @@ function renderCalendar() {
 
   document.getElementById("calendar-days").innerHTML = cells.join("");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderSessionTypes() {
   document.getElementById("session-types").innerHTML = SESSION_TYPES.map((type) => `
     <div class="planning-type-card">
@@ -316,7 +318,7 @@ function renderSessionTypes() {
     </div>
   `).join("");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderSlots() {
   const container = document.getElementById("time-slots");
   if (!selectedDateKey) {
@@ -352,7 +354,7 @@ function renderSlots() {
   `;
   }).join("");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function renderSelectedDateSummary() {
   const title = document.getElementById("selected-date-label");
   const helper = document.getElementById("selected-date-helper");
@@ -366,7 +368,7 @@ function renderSelectedDateSummary() {
   title.textContent = formatLongDate(date);
   //helper.innerHTML = `${SESSION_TYPES.find((item) => item.id === selectedTypeId).label} selectionnee. Choisissez maintenant une heure.<br><a class="planning-place-link" href="${SESSION_TYPES.find((item) => item.id === selectedTypeId).mapsUrl}" target="_blank" rel="noopener noreferrer">Voir le lieu de rencontre sur Google Maps</a>`;
 }
-
+//pour les cards de formation dans la page de choix de formation
 async function renderUpcomingBookings() {
   const bookings = (await getUpcomingBookings())
     .slice()
@@ -380,10 +382,11 @@ async function renderUpcomingBookings() {
     container.innerHTML = `<div class="planning-empty">Aucune reservation pour le moment. Choisissez une date et un horaire.</div>`;
     return;
   }
-
+//pour les cards de formation dans la page de choix de formation
   container.innerHTML = bookings.map((booking, index) => {
     const date = new Date(`${booking.date}T12:00:00`);
     const cancelArg = hasApiSession() && booking.serverId ? booking.serverId : index;
+    const canCancel = booking.statut !== "terminee";
     return `
       <article class="planning-upcoming-item">
         <div class="planning-upcoming-date">
@@ -396,15 +399,12 @@ async function renderUpcomingBookings() {
           <div class="planning-upcoming-meta"><a class="planning-place-link" href="${booking.mapsUrl}" target="_blank" rel="noopener noreferrer">${booking.place}</a></div>
           <div class="planning-upcoming-meta">${booking.note || "Sans note particuliere"}</div>
         </div>
-        <div class="planning-upcoming-actions">
-          <button class="btn btn-outline btn-sm" type="button" onclick="openReclamationModal(${index})">Reclamer</button>
-          <button class="btn btn-outline btn-sm" type="button" onclick="cancelBooking(${cancelArg})">Annuler</button>
-        </div>
+        ${canCancel ? "" : `<div class="planning-upcoming-actions"><span class="badge badge-success">Seance faite</span></div>`}
       </article>
     `;
   }).join("");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function selectDate(dateKey) {
   selectedDateKey = dateKey;
   selectedSlot = "";
@@ -412,7 +412,7 @@ function selectDate(dateKey) {
   renderSelectedDateSummary();
   renderSlots();
 }
-
+//pour les cards de formation dans la page de choix de formation
 function selectSessionType(typeId) {
   selectedTypeId = typeId;
   selectedSlot = "";
@@ -424,7 +424,7 @@ function selectSessionType(typeId) {
   renderSelectedDateSummary();
   renderSlots();
 }
-
+//pour les cards de formation dans la page de choix de formation
 function selectSlot(slot) {
   if (getSlotUnavailableReason(selectedDateKey, slot)) {
     return;
@@ -432,7 +432,7 @@ function selectSlot(slot) {
   selectedSlot = slot;
   renderSlots();
 }
-
+//pour les cards de formation dans la page de choix de formation
 function resetBookingSelection() {
   selectedDateKey = "";
   selectedTypeId = SESSION_TYPES[0].id;
@@ -477,6 +477,7 @@ async function confirmBooking() {
         time: selectedSlot,
         typeId: selectedType.id,
         duration: selectedType.duration,
+        recyclageBoite: planningUser?.recyclageBoite || "",
         place: meetingAddress,
         note
       });
@@ -492,7 +493,7 @@ async function confirmBooking() {
     resetBookingSelection();
     return;
   }
-
+// For users without API session, we store bookings locally and check for conflicts in the local storage
   const bookings = getStoredBookings();
   const alreadyTaken = bookings.some((booking) =>
     booking.date === selectedDateKey &&
@@ -504,14 +505,15 @@ async function confirmBooking() {
     Toast.error("Ce creneau est deja reserve dans cette demo.");
     return;
   }
-
+// We create a booking payload that mimics the server structure as much as possible, so if the user later creates an account or gets an API session, we can easily migrate local bookings to the server.  
   const bookingPayload = {
     studentId: planningUser?.id || `student_${Date.now()}`,
-    studentFirstName: planningUser?.firstName || "Jean",
-    studentLastName: planningUser?.lastName || "Dupont",
+    studentFirstName: planningUser?.firstName || "Candidat",
+    studentLastName: planningUser?.lastName || "",
     studentPhone: planningUser?.phone || "Non renseigne",
     studentEmail: planningUser?.email || "",
     studentFormation: planningUser?.formation || planningUser?.formation_nom || "Formation non renseignee",
+    recyclageBoite: planningUser?.recyclageBoite || "",
     date: selectedDateKey,
     time: selectedSlot,
     typeId: selectedType.id,
@@ -544,6 +546,24 @@ async function confirmBooking() {
   resetBookingSelection();
 }
 
+function openCancelBookingModal(indexOrServerId) {
+  pendingBookingCancelId = indexOrServerId;
+  document.getElementById("cancel-booking-modal").classList.add("open");
+}
+
+function closeCancelBookingModal() {
+  pendingBookingCancelId = null;
+  document.getElementById("cancel-booking-modal").classList.remove("open");
+}
+
+function confirmCancelBooking() {
+  if (pendingBookingCancelId === null || pendingBookingCancelId === undefined) {
+    return;
+  }
+
+  cancelBooking(pendingBookingCancelId);
+}
+//pour les cards de formation dans la page de choix de formation
 async function cancelBooking(indexOrServerId) {
   if (hasApiSession()) {
     try {
@@ -552,6 +572,7 @@ async function cancelBooking(indexOrServerId) {
       await renderUpcomingBookings();
       renderSlots();
       Toast.success("Reservation annulee.");
+      closeCancelBookingModal();
     } catch (error) {
       Toast.error(error.message);
     }
@@ -563,14 +584,15 @@ async function cancelBooking(indexOrServerId) {
   saveStoredBookings(bookings);
   await renderUpcomingBookings();
   Toast.success("Reservation annulee.");
+  closeCancelBookingModal();
 }
-
+//pour les cards de formation dans la page de choix de formation
 function openReclamationModal(index) {
   selectedReclamationIndex = index;
   document.getElementById("reclamation-form").reset();
   document.getElementById("reclamation-modal").classList.add("open");
 }
-
+//pour les cards de formation dans la page de choix de formation
 function closeReclamationModal() {
   selectedReclamationIndex = -1;
   document.getElementById("reclamation-modal").classList.remove("open");
@@ -600,7 +622,7 @@ function readAttachment(file) {
     reader.readAsDataURL(file);
   });
 }
-
+//pour les cards de formation dans la page de choix de formation
 async function submitReclamation(event) {
   event.preventDefault();
   const bookings = upcomingBookingsCache.length ? upcomingBookingsCache : getStoredBookings();
@@ -654,13 +676,21 @@ document.getElementById("reset-btn").addEventListener("click", resetBookingSelec
 document.getElementById("reclamation-form").addEventListener("submit", submitReclamation);
 document.getElementById("close-reclamation-modal").addEventListener("click", closeReclamationModal);
 document.getElementById("cancel-reclamation-btn").addEventListener("click", closeReclamationModal);
+document.getElementById("close-cancel-booking-modal").addEventListener("click", closeCancelBookingModal);
+document.getElementById("cancel-cancel-booking-btn").addEventListener("click", closeCancelBookingModal);
+document.getElementById("confirm-cancel-booking-btn").addEventListener("click", confirmCancelBooking);
+document.getElementById("cancel-booking-modal").addEventListener("click", function (event) {
+  if (event.target === this) {
+    closeCancelBookingModal();
+  }
+});
 
 const planningUser = Auth.get();
-
+// If the user doesn't have an API session, we rely on local storage and a "demo mode" where bookings are not actually saved to a server but kept in the browser. This allows users to explore the booking interface without creating an account, while still providing a realistic experience.
 document.getElementById("planning-logout-link").addEventListener("click", function () {
   Auth.clear();
 });
-
+//pour les cards de formation dans la page de choix de formation
 async function initializePlanning() {
   await loadServerBookings();
   renderWeekDays();
@@ -675,7 +705,7 @@ async function initializePlanning() {
 }
 
 initializePlanning();
-
+// Listen to storage events to sync bookings across tabs for users without API session
 let storageRefreshTimer = null;
 window.addEventListener("storage", function (event) {
   if (event.key !== BOOKINGS_KEY) return;

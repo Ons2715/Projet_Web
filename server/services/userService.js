@@ -1,4 +1,4 @@
-import { createUserProfile, deleteUserById, findUserById, listUsers, updateStudentFormation, updateUserPhotoById } from "../repositories/userRepository.js";
+import { createUserProfile, deleteUserById, findUserById, listUsers, updateStudentFormation, updateUserPhotoById, updateUserProfileById } from "../repositories/userRepository.js";
 import { sendWelcomeEmail } from "./mailService.js";
 import { hashPassword } from "../utils/password.js";
 
@@ -128,6 +128,52 @@ export async function updateMyPhoto(userId, photo) {
   if (!updated) {
     const error = new Error("Utilisateur introuvable.");
     error.status = 404;
+    throw error;
+  }
+
+  return getUserById(userId);
+}
+
+export async function updateMyProfile(userId, payload) {
+  const firstName = String(payload.firstName || payload.prenom || "").trim();
+  const lastName = String(payload.lastName || payload.nomFamille || "").trim();
+  const nom = String(payload.nom || `${firstName} ${lastName}`).trim();
+  const email = normalizeEmail(payload.email);
+  const telephone = String(payload.telephone || payload.phone || "").trim();
+  const adresse = String(payload.adresse || payload.address || "").trim();
+
+  if (!nom || !email || !telephone || !adresse) {
+    const error = new Error("Veuillez remplir le nom, l'email, le telephone et l'adresse.");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!validateEmail(email)) {
+    const error = new Error("Adresse email invalide.");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!validatePhone(telephone)) {
+    const error = new Error("Le numero de telephone doit contenir exactement 8 chiffres.");
+    error.status = 400;
+    throw error;
+  }
+
+  try {
+    const updated = await updateUserProfileById(userId, { nom, email, telephone, adresse });
+
+    if (!updated) {
+      const error = new Error("Utilisateur introuvable.");
+      error.status = 404;
+      throw error;
+    }
+  } catch (error) {
+    if (error.code === "ER_DUP_ENTRY") {
+      const duplicateError = new Error("Cet email est deja utilise.");
+      duplicateError.status = 409;
+      throw duplicateError;
+    }
     throw error;
   }
 

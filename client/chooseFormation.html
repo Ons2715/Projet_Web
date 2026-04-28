@@ -9,86 +9,103 @@
   </head>
   <body class="plan-page">
     <main class="plan-shell">
-      <header class="plan-header">
-        <div>
-          <p class="plan-kicker">Finaliser l'inscription</p>
-          <div class="plan-header-actions">
-            <a class="plan-back plan-back-secondary" href="javascript:history.back()">Retour</a>
-          </div>
-          <a class="client-brand" href="./index.html">Edu<span>Car</span></a>
-          <h1 class="plan-title">Choisissez votre pack de formation</h1>
-          <p class="plan-subtitle">
-            Selectionnez la formule qui vous convient puis confirmez pour passer au paiement.
-          </p>
-        </div>
-        <a class="plan-back" href="./index.html" id="formation-logout-link">Deconnexion</a>
-      </header>
+      <section class="plan-notice" aria-label="Informations inscription">
+        <p class="plan-notice-kicker">Avant de choisir un pack</p>
+        <h1 class="plan-notice-title">Dossier a deposer au bureau EduCar</h1>
+        <p class="plan-notice-text">
+          Pour finaliser l'inscription, le client doit ramener les papiers necessaires au bureau situe au Centre Urbain Nord, Tunis.
+        </p>
+        <ul class="plan-notice-list">
+          <li>Copie de la carte d'identite nationale</li>
+          <li>4 photos d'identite recentes</li>
+          <li>Certificat medical si demande</li>
+          <li>Justificatif de paiement ou acompte</li>
+        </ul>
+        <a
+          class="plan-notice-link"
+          href="https://www.google.com/maps/search/?api=1&query=Centre+Urbain+Nord+Tunis"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Voir le bureau sur Google Maps
+        </a>
+      </section>
 
       <section class="plan-grid">
-        <article class="plan-card selected" data-formation-id="3" data-formation="Code" data-price="250 DT">
+        <article class="plan-card selected" data-formation-id="3" data-formation="Code" data-price="300 DT">
           <div class="plan-badge">Essentiel</div>
-          <h2>Code <span><h6>( + 1h conduite gratuite )</h6></span></h2>
+          <h2>Code</h2>
           <div class="plan-price">
-            <span class="plan-price-main">250</span>
+            <span class="plan-price-main">300</span>
             <span class="plan-price-unit">DT</span>
           </div>
-          <p class="plan-desc">Parfait pour preparer l'examen theorique avec revisions completes.</p>
+          <p class="plan-desc">Preparation theorique complete avec un bonus pratique pour demarrer la conduite.</p>
           <button class="plan-button" type="button">Choisir ce pack</button>
           <ul class="plan-features">
-            <li>15 seances de code</li>
+            <li>10h de cours de code</li>
+            <li>1h de conduite gratuite</li>
             <li>Series corrigees et examens blancs</li>
-            <li>Acces a la salle de revision</li>
             <li>Suivi des resultats</li>
           </ul>
         </article>
 
-        <article class="plan-card featured" data-formation-id="1" data-formation="Permis B boite manuelle" data-price="1 450 DT">
+        <article class="plan-card featured" data-formation-id="1" data-formation="Permis B boite manuelle" data-price="1 200 DT">
           <div class="plan-badge plan-badge-special">Le plus choisi</div>
           <h2>Permis B boite manuelle</h2>
           <div class="plan-price">
-            <span class="plan-price-main">1450</span>
+            <span class="plan-price-main">1200</span>
             <span class="plan-price-unit">DT</span>
           </div>
-          <p class="plan-desc">Formation complete en boite manuelle avec accompagnement jusqu'a l'examen.</p>
+          <p class="plan-desc">Formation complete pour maitriser la conduite en boite manuelle avec accompagnement progressif.</p>
           <button class="plan-button" type="button">Choisir ce pack</button>
           <ul class="plan-features">
-            <li>30 seances de conduite</li>
-            <li>5 seances de manoeuvre</li>
-            <li>1 evaluation pre-examen</li>
-            <li>Accompagnement jour J</li>
+            <li>20h de conduite incluses</li>
+            <li>Travail de demarrage, circulation et manoeuvres</li>
+            <li>Suivi de progression</li>
+            <li>Preparation a l'examen pratique</li>
           </ul>
         </article>
 
-        <article class="plan-card" data-formation-id="2" data-formation="Permis B boite automatique" data-price="1 300 DT">
+        <article class="plan-card" data-formation-id="2" data-formation="Permis B boite automatique" data-price="1 100 DT">
           <div class="plan-badge">Confort</div>
           <h2>Permis B boite automatique</h2>
           <div class="plan-price">
-            <span class="plan-price-main">1300</span>
+            <span class="plan-price-main">1100</span>
             <span class="plan-price-unit">DT</span>
           </div>
-          <p class="plan-desc">Une formule plus fluide pour apprendre sereinement en boite automatique.</p>
+          <p class="plan-desc">Une formule souple pour apprendre plus sereinement sur boite automatique.</p>
           <button class="plan-button" type="button">Choisir ce pack</button>
           <ul class="plan-features">
-            <li>25 seances de conduite</li>
-            <li>4 seances de stationnement</li>
-            <li>1 bilan de progression</li>
+            <li>20h de conduite incluses</li>
+            <li>Progression pratique pas a pas</li>
+            <li>Bilan de progression regulier</li>
             <li>Planification flexible</li>
           </ul>
         </article>
 
-        <article class="plan-card" data-formation-id="4" data-formation="Recyclage" data-price="420 DT">
+        <article class="plan-card" data-formation-id="4" data-formation="Recyclage" data-price="250 DT">
           <div class="plan-badge">Remise a niveau</div>
           <h2>Recyclage</h2>
           <div class="plan-price">
-            <span class="plan-price-main">420</span>
+            <span class="plan-price-main">250</span>
             <span class="plan-price-unit">DT</span>
           </div>
           <p class="plan-desc">Pour les conducteurs qui veulent reprendre confiance et revoir les bases.</p>
+          <div class="recyclage-choice" id="recyclage-choice">
+            <label>
+              <input type="radio" name="recyclage-boite" value="automatique" checked />
+              Boite automatique
+            </label>
+            <label>
+              <input type="radio" name="recyclage-boite" value="manuelle" />
+              Boite manuelle
+            </label>
+          </div>
           <button class="plan-button" type="button">Choisir ce pack</button>
           <ul class="plan-features">
-            <li>8 seances de remise a niveau</li>
-            <li>Revision code et signalisation</li>
-            <li>Parcours ville + stationnement</li>
+            <li>7h de remise a niveau</li>
+            <li>Reprise des bases essentielles</li>
+            <li>Circulation en ville et stationnement</li>
             <li>Conseils personnalises</li>
           </ul>
         </article>
@@ -97,16 +114,16 @@
       <section class="confirm-bar">
         <div class="confirm-summary-box">
           <div class="confirm-summary-row">
-            <span id="selected-formation-label">1 article</span>
-            <strong id="selected-price">250 TND</strong>
+            <span>Formation selectionnée :</span>
+            <span id="selected-formation-label">Code</span>
           </div>
           <div class="confirm-summary-row">
-            <span>Taxes (19%)</span>
-            <strong id="selected-tax">0 TND</strong>
+            <span>Prix :</span>
+            <strong id="selected-price">300 TND</strong>
           </div>
           <div class="confirm-summary-total">
-            <span>Total TTC</span>
-            <strong id="selected-total">250 TND</strong>
+            <span>Total</span>
+            <strong id="selected-total">300 TND</strong>
           </div>
         </div>
         <button class="confirm-button" type="button" onclick="handlePayment()">Payer</button>
